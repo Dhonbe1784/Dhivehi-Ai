@@ -2,7 +2,6 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Message, Role } from "../types";
 
-// Declare process to satisfy TypeScript
 declare const process: {
   env: {
     API_KEY: string;
@@ -10,14 +9,15 @@ declare const process: {
   };
 };
 
-const SYSTEM_INSTRUCTION = `You are a helpful and intelligent AI assistant specialized in the Dhivehi language and Maldivian culture. 
-Your name is "Test Dhivehi GPT". 
-When communicating:
-1. Prioritize responding in fluent, grammatically correct Dhivehi (Thaana script).
-2. Use a respectful and professional tone.
-3. If the user asks in English, you can reply in English, but always offer to continue in Dhivehi.
-4. You have deep knowledge of Maldivian history, geography, laws, and traditions.
-5. Ensure your responses are rendered correctly for RTL (Right-to-Left) reading.`;
+const SYSTEM_INSTRUCTION = `You are "Dhivehi GPT", a professional and highly intelligent AI assistant developed to help Maldivians. 
+
+Core Guidelines:
+1. Always respond in fluent, high-quality Dhivehi (Thaana script) unless the user explicitly asks for another language.
+2. Use respectful Maldivian address forms.
+3. You have expert-level knowledge of Maldivian history, Islamic values, local laws, and geography.
+4. Your responses must be structured for perfect RTL (Right-to-Left) rendering.
+5. If you use technical English terms, provide a brief Dhivehi explanation.
+6. Be concise but helpful.`;
 
 export class GeminiService {
   private ai: GoogleGenAI | null = null;
@@ -25,9 +25,6 @@ export class GeminiService {
   private getClient() {
     if (!this.ai) {
       const apiKey = process.env.API_KEY;
-      if (!apiKey || apiKey === 'undefined') {
-        console.warn("API_KEY is not defined in process.env. The application may not function correctly.");
-      }
       this.ai = new GoogleGenAI({ apiKey: apiKey });
     }
     return this.ai;
@@ -36,13 +33,20 @@ export class GeminiService {
   async *streamChat(history: Message[], currentMessage: string) {
     const ai = this.getClient();
     
-    // Convert history messages to the format expected by the GenAI SDK
-    const contents = history.map(msg => ({
+    // Filter history: remove the message currently being streamed and any empty messages
+    // The API requires alternating roles: user, model, user, model...
+    const validHistory = history.filter(msg => 
+      msg.content.trim() !== "" && 
+      !msg.isStreaming && 
+      msg.content !== currentMessage // Don't include the current message yet
+    );
+
+    const contents = validHistory.map(msg => ({
       role: msg.role === Role.MODEL ? 'model' : 'user',
       parts: [{ text: msg.content }]
     }));
 
-    // Add the latest user message
+    // Add the current user message as the final part
     contents.push({ role: 'user', parts: [{ text: currentMessage }] });
 
     try {
@@ -51,7 +55,7 @@ export class GeminiService {
         contents: contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.7,
+          temperature: 0.8,
           topP: 0.95,
         },
       });
@@ -62,9 +66,6 @@ export class GeminiService {
       }
     } catch (error: any) {
       console.error("Gemini API Error:", error);
-      if (error?.message?.includes("API_KEY_INVALID") || error?.message?.includes("not found")) {
-        throw new Error("API_KEY_ERROR");
-      }
       throw error;
     }
   }

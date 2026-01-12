@@ -41,7 +41,7 @@ const App: React.FC = () => {
   };
 
   const handleSendMessage = async (content: string) => {
-    if (!currentSessionId) return;
+    if (!currentSessionId || !content.trim()) return;
     setError(null);
 
     const userMessage: Message = {
@@ -50,6 +50,9 @@ const App: React.FC = () => {
       content,
       timestamp: new Date(),
     };
+
+    // Store history before update for the API call
+    const historyBeforeUpdate = currentSession?.messages || [];
 
     setSessions(prev => prev.map(s => {
       if (s.id === currentSessionId) {
@@ -83,8 +86,7 @@ const App: React.FC = () => {
 
     try {
       let fullContent = "";
-      const currentHistory = sessions.find(s => s.id === currentSessionId)?.messages || [];
-      const stream = geminiService.streamChat(currentHistory, content);
+      const stream = geminiService.streamChat(historyBeforeUpdate, content);
 
       for await (const chunk of stream) {
         fullContent += chunk;
@@ -114,11 +116,8 @@ const App: React.FC = () => {
       }));
 
     } catch (err: any) {
-      console.error("Streaming error:", err);
-      const errorMessage = err.message === "API_KEY_ERROR" 
-        ? "API ކީ ބޭނުމެއް ނުކުރެވުނު. ސެޓިންގްސްގައި ކީ ރަނގަޅުތޯ ބައްލަވާލައްވާ."
-        : "މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.";
-      
+      console.error("Chat error:", err);
+      const errorMessage = "މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.";
       setError(errorMessage);
       
       setSessions(prev => prev.map(s => {
@@ -139,58 +138,52 @@ const App: React.FC = () => {
 
   const WelcomeScreen = () => (
     <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 text-center bg-transparent">
-      <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white mb-8 shadow-xl shadow-emerald-500/20">
-        <Sparkles size={32} />
+      <div className="w-20 h-20 bg-emerald-600 rounded-3xl flex items-center justify-center text-white mb-10 shadow-2xl shadow-emerald-500/20 rotate-3">
+        <Sparkles size={40} />
       </div>
-      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 thaana-text tracking-tight">މިއަދު ކިހިނެއް އެހީތެރިވެދެވޭނީ؟</h2>
-      <p className="text-gray-500 max-w-lg mb-12 thaana-text text-lg">
+      <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 thaana-text tracking-tight">މިއަދު ކިހިނެއް އެހީތެރިވެދެވޭނީ؟</h2>
+      <p className="text-gray-500 max-w-lg mb-16 thaana-text text-xl">
         ދިވެހި ބަހުން ވާހަކަ ދެއްކުމަށާއި، މަސައްކަތްތައް ފަސޭހަކޮށްލުމަށް ދިވެހި GPT ބޭނުންކުރައްވާ.
       </p>
 
-      {error && (
-        <div className="mb-8 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 flex items-center gap-3 thaana-text shadow-sm">
-          <AlertTriangle size={20} className="shrink-0" />
-          <span className="text-sm font-bold">{error}</span>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-4xl">
-        <button 
-          onClick={() => handleSendMessage("ދިވެހިރާއްޖޭގެ ތާރީހާ ބެހޭގޮތުން ކިޔައިދީ")}
-          className="group bg-white p-5 rounded-2xl border border-gray-100 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/5 transition-all text-right flex flex-col items-start gap-4"
-        >
-          <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-            <BrainCircuit size={20} />
-          </div>
-          <div>
-            <h3 className="font-bold text-gray-800 mb-1 thaana-text text-sm">ތާރީހީ މައުލޫމާތު</h3>
-            <p className="text-xs text-gray-400 thaana-text">ދިވެހިރާއްޖޭގެ މުއްސަނދި ތާރީހާ ބެހޭގޮތުން ސުވާލުކުރައްވާ.</p>
-          </div>
-        </button>
-        <button 
-          onClick={() => handleSendMessage("ދިވެހި ބަހުގެ ގަވާއިދުތަކާ ބެހޭގޮތުން އެހީތެރިވެދީ")}
-          className="group bg-white p-5 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all text-right flex flex-col items-start gap-4"
-        >
-          <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-            <Languages size={20} />
-          </div>
-          <div>
-            <h3 className="font-bold text-gray-800 mb-1 thaana-text text-sm">ބަހުގެ އެހީތެރިކަން</h3>
-            <p className="text-xs text-gray-400 thaana-text">ލިޔުންތައް އިސްލާހުކުރުމަށާއި ބަހުގެ ގަވާއިދަށް އެހީތެރިވެދޭނެ.</p>
-          </div>
-        </button>
-        <button 
-          onClick={() => handleSendMessage("މިއަދުގެ މޫސުމާ ބެހޭގޮތުން މައުލޫމާތު ހޯދައިދީ")}
-          className="group bg-white p-5 rounded-2xl border border-gray-100 hover:border-orange-200 hover:shadow-lg hover:shadow-orange-500/5 transition-all text-right flex flex-col items-start gap-4"
-        >
-          <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors">
-            <Sparkles size={20} />
-          </div>
-          <div>
-            <h3 className="font-bold text-gray-800 mb-1 thaana-text text-sm">އާންމު މައުލޫމާތު</h3>
-            <p className="text-xs text-gray-400 thaana-text">ކޮންމެ ދާއިރާއަކުންވެސް ބޭނުންވާ މައުލޫމާތު އޮޅުންފިލުއްވާ.</p>
-          </div>
-        </button>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 w-full max-w-5xl px-4">
+        {[
+          {
+            title: "ތާރީހީ މައުލޫމާތު",
+            desc: "ދިވެހިރާއްޖޭގެ މުއްސަނދި ތާރީހާ ބެހޭގޮތުން ސުވާލުކުރައްވާ.",
+            icon: <BrainCircuit size={24} />,
+            color: "emerald",
+            prompt: "ދިވެހިރާއްޖޭގެ ތާރީހާ ބެހޭގޮތުން ކުރުކޮށް ކިޔައިދީ"
+          },
+          {
+            title: "ބަހުގެ އެހީތެރިކަން",
+            desc: "ލިޔުންތައް އިސްލާހުކުރުމަށާއި ބަހުގެ ގަވާއިދަށް އެހީތެރިވެދޭނެ.",
+            icon: <Languages size={24} />,
+            color: "blue",
+            prompt: "ދިވެހި ބަހުގެ ގަވާއިދުގައި 'ކަށަވަށް' މި ބަހުގެ މާނައަކީ ކޮބައި؟"
+          },
+          {
+            title: "އާންމު މައުލޫމާތު",
+            desc: "ކޮންމެ ދާއިރާއަކުންވެސް ބޭނުންވާ މައުލޫމާތު އޮޅުންފިލުއްވާ.",
+            icon: <Sparkles size={24} />,
+            color: "orange",
+            prompt: "މާލޭގެ ތާރީހާ ބެހޭ 3 ހަގީގަތެއް ކިޔައިދީ"
+          }
+        ].map((item, idx) => (
+          <button 
+            key={idx}
+            onClick={() => handleSendMessage(item.prompt)}
+            className={`group bg-white p-6 rounded-[2rem] border border-gray-100 hover:border-${item.color}-200 hover:shadow-xl transition-all text-right flex flex-col items-start gap-5`}
+          >
+            <div className={`w-12 h-12 bg-${item.color}-50 text-${item.color}-600 rounded-2xl flex items-center justify-center group-hover:bg-${item.color}-600 group-hover:text-white transition-all duration-300`}>
+              {item.icon}
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2 thaana-text text-lg">{item.title}</h3>
+              <p className="text-sm text-gray-400 thaana-text leading-relaxed">{item.desc}</p>
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -202,26 +195,28 @@ const App: React.FC = () => {
       onNewChat={handleNewChat}
       onSelectSession={(id) => setCurrentSessionId(id)}
     >
-      <div className="flex-1 flex flex-col min-h-0 chat-bg">
+      <div className="flex-1 flex flex-col min-h-0 chat-bg relative">
+        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white to-transparent z-[5] pointer-events-none"></div>
+        
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto scroll-smooth"
+          className="flex-1 overflow-y-auto scroll-smooth pt-10"
         >
           {currentSession && currentSession.messages.length > 0 ? (
-            <div className="flex flex-col pb-20">
+            <div className="flex flex-col pb-32">
               {currentSession.messages.map((msg) => (
                 <ChatMessage key={msg.id} message={msg} />
               ))}
               {isTyping && !currentSession.messages[currentSession.messages.length - 1].isStreaming && (
-                <div className="py-8 bg-gray-50/50 border-y border-gray-100">
+                <div className="py-10 bg-gray-50/30">
                    <div className="max-w-4xl mx-auto px-4 md:px-8 flex gap-8">
-                      <div className="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center text-white shadow-sm animate-pulse">
-                        <Sparkles size={20} />
+                      <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 animate-pulse">
+                        <Sparkles size={22} />
                       </div>
-                      <div className="flex gap-1.5 items-center">
-                        <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                        <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                        <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce"></div>
+                      <div className="flex gap-2 items-center">
+                        <div className="w-3 h-3 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                        <div className="w-3 h-3 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                        <div className="w-3 h-3 bg-emerald-400 rounded-full animate-bounce"></div>
                       </div>
                    </div>
                 </div>
@@ -232,7 +227,7 @@ const App: React.FC = () => {
           )}
         </div>
 
-        <div className="shrink-0 bg-gradient-to-t from-white via-white/95 to-transparent pt-10">
+        <div className="shrink-0 bg-gradient-to-t from-white via-white/95 to-transparent pt-12">
           <ChatInput onSend={handleSendMessage} disabled={isTyping} />
         </div>
       </div>
