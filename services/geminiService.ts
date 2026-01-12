@@ -9,15 +9,20 @@ declare const process: {
   };
 };
 
-const SYSTEM_INSTRUCTION = `You are "Dhivehi GPT", a professional and highly intelligent AI assistant developed to help Maldivians. 
+const SYSTEM_INSTRUCTION = `You are "Dhivehi GPT Pro", an elite AI assistant. 
+Your primary goal is to assist Maldivians with high-quality Dhivehi (Thaana) responses.
 
-Core Guidelines:
-1. Always respond in fluent, high-quality Dhivehi (Thaana script) unless the user explicitly asks for another language.
-2. Use respectful Maldivian address forms.
-3. You have expert-level knowledge of Maldivian history, Islamic values, local laws, and geography.
-4. Your responses must be structured for perfect RTL (Right-to-Left) rendering.
-5. If you use technical English terms, provide a brief Dhivehi explanation.
-6. Be concise but helpful.`;
+Guidelines:
+1. Always respond in fluent, grammatically correct Dhivehi unless English is requested.
+2. Use professional and respectful Maldivian honorifics.
+3. Use the provided Google Search tool to verify current events, news, and Maldivian laws.
+4. Format responses for Right-to-Left (RTL) rendering. Use lists and clear paragraphs.
+5. If search results are used, incorporate the information naturally into your answer.`;
+
+export interface StreamResult {
+  text: string;
+  groundingChunks?: any[];
+}
 
 export class GeminiService {
   private ai: GoogleGenAI | null = null;
@@ -25,6 +30,9 @@ export class GeminiService {
   private getClient() {
     if (!this.ai) {
       const apiKey = process.env.API_KEY;
+      if (!apiKey) {
+        throw new Error("API_KEY is missing. Please set VITE_GEMINI_API_KEY in your environment.");
+      }
       this.ai = new GoogleGenAI({ apiKey: apiKey });
     }
     return this.ai;
@@ -33,39 +41,42 @@ export class GeminiService {
   async *streamChat(history: Message[], currentMessage: string) {
     const ai = this.getClient();
     
-    // Filter history: remove the message currently being streamed and any empty messages
-    // The API requires alternating roles: user, model, user, model...
-    const validHistory = history.filter(msg => 
+    const cleanedHistory = history.filter(msg => 
       msg.content.trim() !== "" && 
-      !msg.isStreaming && 
-      msg.content !== currentMessage // Don't include the current message yet
+      !msg.isStreaming &&
+      msg.content !== currentMessage
     );
 
-    const contents = validHistory.map(msg => ({
+    const contents = cleanedHistory.map(msg => ({
       role: msg.role === Role.MODEL ? 'model' : 'user',
       parts: [{ text: msg.content }]
     }));
 
-    // Add the current user message as the final part
     contents.push({ role: 'user', parts: [{ text: currentMessage }] });
 
     try {
       const result = await ai.models.generateContentStream({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3-pro-preview',
         contents: contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.8,
-          topP: 0.95,
+          temperature: 0.7,
+          topP: 0.9,
+          tools: [{ googleSearch: {} }]
         },
       });
 
       for await (const chunk of result) {
         const c = chunk as GenerateContentResponse;
-        yield c.text || "";
+        if (c.text || c.candidates?.[0]?.groundingMetadata) {
+          yield {
+            text: c.text || "",
+            groundingChunks: c.candidates?.[0]?.groundingMetadata?.groundingChunks
+          };
+        }
       }
     } catch (error: any) {
-      console.error("Gemini API Error:", error);
+      console.error("Dhivehi GPT Pro Error:", error);
       throw error;
     }
   }

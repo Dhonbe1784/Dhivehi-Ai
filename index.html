@@ -4,13 +4,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Test Dhivehi GPT</title>
+    <title>Dhivehi GPT Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thaana:wght@400;700&display=swap" rel="stylesheet">
     <style>
-      /* Faruma Font Integration */
       @font-face {
         font-family: 'Faruma';
         src: url('https://cdn.jsdelivr.net/gh/mshujau/thaana-fonts@master/Faruma.ttf') format('truetype');
@@ -20,11 +19,11 @@
       }
 
       body {
-        font-family: 'Faruma', 'Noto Sans Thaana', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Faruma', 'Noto Sans Thaana', sans-serif;
         line-height: 1.8;
         margin: 0;
         padding: 0;
-        background-color: #f9fafb;
+        background-color: #fcfcfc;
       }
       
       .thaana-text {
@@ -36,15 +35,19 @@
         text-align: right;
       }
 
-      /* Subtle dot background for chat */
-      .chat-bg {
+      .chat-bg-pattern {
         background-color: #ffffff;
         background-image: radial-gradient(#e5e7eb 0.5px, transparent 0.5px);
-        background-size: 20px 20px;
+        background-size: 24px 24px;
+      }
+
+      .gradient-mesh {
+        background: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
       }
 
       ::-webkit-scrollbar {
-        width: 5px;
+        width: 6px;
       }
       ::-webkit-scrollbar-track {
         background: transparent;
@@ -64,12 +67,12 @@
   <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
     "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
     "vite": "https://esm.sh/vite@^7.3.1",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
     "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
   }
 }
