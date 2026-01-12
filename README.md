@@ -1,11 +1,41 @@
-<div align="center">
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+# Test Dhivehi GPT
 
-  <h1>Built with AI Studio</h2>
+A professional AI assistant optimized for the Dhivehi language and Maldivian cultural context.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 🚀 Local Development
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-</div>
+2. **Configure Environment:**
+   Create a `.env` file in the root folder and add your Gemini API Key:
+   ```text
+   VITE_GEMINI_API_KEY=your_actual_api_key_here
+   ```
+
+3. **Run the app:**
+   ```bash
+   npm run dev
+   ```
+
+## 🌐 Free Hosting (Vercel/Netlify)
+
+This project is ready to be hosted for free:
+
+1. Push your code to a **GitHub** repository.
+2. Sign in to **Vercel** with GitHub.
+3. Import this repository.
+4. Under **Environment Variables**, add:
+   - Key: `API_KEY`
+   - Value: `your_gemini_api_key`
+5. Click **Deploy**.
+
+## 🛠 Built With
+- React 19
+- Tailwind CSS
+- Google Gemini AI (gemini-3-flash-preview)
+- Lucide Icons
+- Noto Sans Thaana Font
