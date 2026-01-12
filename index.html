@@ -24,6 +24,7 @@
         line-height: 1.8;
         margin: 0;
         padding: 0;
+        background-color: #f9fafb;
       }
       
       .thaana-text {
@@ -31,24 +32,29 @@
         line-height: 1.8;
       }
 
-      /* Adjusting text rendering for Thaana */
       [dir="rtl"] {
         text-align: right;
       }
 
-      /* Custom scrollbar */
+      /* Subtle dot background for chat */
+      .chat-bg {
+        background-color: #ffffff;
+        background-image: radial-gradient(#e5e7eb 0.5px, transparent 0.5px);
+        background-size: 20px 20px;
+      }
+
       ::-webkit-scrollbar {
-        width: 6px;
+        width: 5px;
       }
       ::-webkit-scrollbar-track {
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: #e2e8f0;
         border-radius: 10px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
+        background: #cbd5e1;
       }
 
       #root {
@@ -69,9 +75,8 @@
 }
 </script>
 </head>
-  <body class="bg-gray-50 text-gray-900">
+  <body class="text-gray-900">
     <div id="root"></div>
-    <!-- Entry point for the application -->
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
