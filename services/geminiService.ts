@@ -2,6 +2,14 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Message, Role } from "../types";
 
+// Declare process to satisfy TypeScript as it's defined globally by Vite at build time
+declare const process: {
+  env: {
+    API_KEY: string;
+    [key: string]: string | undefined;
+  };
+};
+
 const SYSTEM_INSTRUCTION = `You are a helpful and intelligent AI assistant specialized in the Dhivehi language and Maldivian culture. 
 Your name is "Test Dhivehi GPT". 
 When communicating:
