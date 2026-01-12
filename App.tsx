@@ -5,7 +5,7 @@ import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import { Message, Role, ChatSession } from './types';
 import { geminiService, StreamResult } from './services/geminiService';
-import { Sparkles, BrainCircuit, Languages, Globe, Zap, AlertTriangle } from 'lucide-react';
+import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle } from 'lucide-react';
 
 const App: React.FC = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -52,13 +52,13 @@ const App: React.FC = () => {
       timestamp: new Date(),
     };
 
-    const historyForService = currentSession?.messages || [];
+    const historySnapshot = currentSession?.messages || [];
 
     setSessions(prev => prev.map(s => {
       if (s.id === currentSessionId) {
         return {
           ...s,
-          title: s.messages.length === 0 ? (content.length > 25 ? content.substring(0, 25) + '...' : content) : s.title,
+          title: s.messages.length === 0 ? (content.length > 20 ? content.substring(0, 20) + '...' : content) : s.title,
           messages: [...s.messages, userMessage],
           updatedAt: new Date()
         };
@@ -86,14 +86,16 @@ const App: React.FC = () => {
 
     try {
       let fullContent = "";
-      let lastGrounding: any[] = [];
-      const stream = geminiService.streamChat(historyForService, content);
+      let accumulatedChunks: any[] = [];
+      const stream = geminiService.streamChat(historySnapshot, content);
 
-      for await (const chunk of stream) {
-        const { text, groundingChunks } = chunk as StreamResult;
-        fullContent += text;
-        if (groundingChunks) {
-          lastGrounding = [...lastGrounding, ...groundingChunks];
+      for await (const result of stream) {
+        const chunk = result as StreamResult;
+        if (chunk.text) {
+          fullContent += chunk.text;
+        }
+        if (chunk.groundingChunks) {
+          accumulatedChunks = [...accumulatedChunks, ...chunk.groundingChunks];
         }
 
         setSessions(prev => prev.map(s => {
@@ -109,8 +111,8 @@ const App: React.FC = () => {
         }));
       }
 
-      if (lastGrounding.length > 0) {
-        setGroundingMap(prev => ({ ...prev, [botMessageId]: lastGrounding }));
+      if (accumulatedChunks.length > 0) {
+        setGroundingMap(prev => ({ ...prev, [botMessageId]: accumulatedChunks }));
       }
 
       setSessions(prev => prev.map(s => {
@@ -127,15 +129,20 @@ const App: React.FC = () => {
 
     } catch (err: any) {
       console.error("Pro Session Error:", err);
-      const errorMessage = "މައާފް ކުރައްވާ، މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.";
-      setError(errorMessage);
+      let userFriendlyError = "މައާފް ކުރައްވާ، މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.";
+      
+      if (err.message?.includes("API Key")) {
+        userFriendlyError = "އޭޕީއައި ކީ (API Key) މަދުވެއެވެ. ވެރްސެލް ސެޓިންގްސްގައި ކީ ހިމަނާފައިވޭތޯ ޗެކްކޮށްލައްވާ.";
+      }
+      
+      setError(userFriendlyError);
       
       setSessions(prev => prev.map(s => {
         if (s.id === currentSessionId) {
           return {
             ...s,
             messages: s.messages.map(m => 
-              m.id === botMessageId ? { ...m, content: errorMessage, isStreaming: false } : m
+              m.id === botMessageId ? { ...m, content: userFriendlyError, isStreaming: false } : m
             )
           };
         }
@@ -161,8 +168,8 @@ const App: React.FC = () => {
       </p>
 
       {error && (
-        <div className="mb-10 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 flex items-center gap-3 thaana-text shadow-sm animate-bounce">
-          <AlertTriangle size={20} className="shrink-0" />
+        <div className="mb-8 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 flex items-center gap-3 thaana-text max-w-lg">
+          <AlertCircle size={20} className="shrink-0" />
           <span className="text-sm font-bold">{error}</span>
         </div>
       )}
@@ -171,7 +178,7 @@ const App: React.FC = () => {
         {[
           {
             title: "ތާރީހީ މައުލޫމާތު",
-            desc: "ދިވެހިރާއްޖޭގެ މުއްސަނދި ތާރީހާއި ސަގާފަތާ ބެހޭގޮތުން ސުވާލުކުރައްވާ.",
+            desc: "ދިވެހިރާއްޖޭގެ ތާރީހާއި ސަގާފަތާ ބެހޭގޮތުން ސުވާލުކުރައްވާ.",
             icon: <BrainCircuit size={24} />,
             color: "emerald",
             prompt: "ދިވެހިރާއްޖޭގެ ތާރީހާ ބެހޭގޮތުން ކުރުކޮށް ކިޔައިދީ"
@@ -188,7 +195,7 @@ const App: React.FC = () => {
             desc: "މިއަދުގެ އެންމެ ފަހުގެ ޚަބަރުތައް ހޯދައި އޮޅުންފިލުވާ.",
             icon: <Globe size={24} />,
             color: "orange",
-            prompt: "މިއަދު ދުނިޔޭގައި ހިނގަމުންދާ އެންމެ މުހިންމު 3 ޚަބަރެއް ކިޔައިދީ"
+            prompt: "މިއަދުގެ އެންމެ ފަހުގެ ޚަބަރުތަކަކީ ކޮބައި؟"
           }
         ].map((item, idx) => (
           <button 

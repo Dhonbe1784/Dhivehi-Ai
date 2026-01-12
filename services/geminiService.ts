@@ -9,15 +9,18 @@ declare const process: {
   };
 };
 
-const SYSTEM_INSTRUCTION = `You are "Dhivehi GPT Pro", an elite AI assistant. 
-Your primary goal is to assist Maldivians with high-quality Dhivehi (Thaana) responses.
+const SYSTEM_INSTRUCTION = `You are "Dhivehi GPT Pro", a specialized AI expert for the Maldives. 
 
-Guidelines:
-1. Always respond in fluent, grammatically correct Dhivehi unless English is requested.
-2. Use professional and respectful Maldivian honorifics.
-3. Use the provided Google Search tool to verify current events, news, and Maldivian laws.
-4. Format responses for Right-to-Left (RTL) rendering. Use lists and clear paragraphs.
-5. If search results are used, incorporate the information naturally into your answer.`;
+CRITICAL RULES:
+1. NO INTRODUCTIONS: Do not start with "I am an AI", "As a language model", or any greetings unless asked. 
+2. DIRECT ANSWERS: If a user asks a question, provide the factual answer in Dhivehi immediately.
+3. LANGUAGE: Use fluent, natural Dhivehi (Thaana script). Use modern Maldivian terminology.
+4. SEARCH USAGE: Use the Google Search tool for all queries related to current events, Maldivian laws, history, or facts to ensure 100% accuracy.
+5. FORMATTING: Ensure RTL (Right-to-Left) alignment is perfect. Use bullet points for readability.
+
+Example: 
+User: "މިއަދުގެ ފަތިސް ނަމާދު ވަގުތަކީ ކޮބައި؟"
+Response: [Search for prayer times] -> "މިއަދު މާލޭގައި ފަތިސް ނަމާދު ވަގުތަކީ 05:12 އެވެ."`;
 
 export interface StreamResult {
   text: string;
@@ -30,8 +33,8 @@ export class GeminiService {
   private getClient() {
     if (!this.ai) {
       const apiKey = process.env.API_KEY;
-      if (!apiKey) {
-        throw new Error("API_KEY is missing. Please set VITE_GEMINI_API_KEY in your environment.");
+      if (!apiKey || apiKey === "undefined") {
+        throw new Error("API Key is missing. Please set VITE_GEMINI_API_KEY in your Vercel settings.");
       }
       this.ai = new GoogleGenAI({ apiKey: apiKey });
     }
@@ -41,27 +44,27 @@ export class GeminiService {
   async *streamChat(history: Message[], currentMessage: string) {
     const ai = this.getClient();
     
-    const cleanedHistory = history.filter(msg => 
-      msg.content.trim() !== "" && 
-      !msg.isStreaming &&
-      msg.content !== currentMessage
-    );
+    // Ensure history is sanitized for the API
+    const cleanedHistory = history
+      .filter(msg => msg.content.trim() !== "" && !msg.isStreaming)
+      .map(msg => ({
+        role: msg.role === Role.MODEL ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+      }));
 
-    const contents = cleanedHistory.map(msg => ({
-      role: msg.role === Role.MODEL ? 'model' : 'user',
-      parts: [{ text: msg.content }]
-    }));
-
-    contents.push({ role: 'user', parts: [{ text: currentMessage }] });
+    const contents = [
+      ...cleanedHistory,
+      { role: 'user', parts: [{ text: currentMessage }] }
+    ];
 
     try {
       const result = await ai.models.generateContentStream({
-        model: 'gemini-3-pro-preview',
+        model: 'gemini-3-flash-preview', // Flash is often more stable for hobby projects on Vercel
         contents: contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.7,
-          topP: 0.9,
+          temperature: 0.2, // Lower temperature for more direct, factual answers
+          topP: 0.8,
           tools: [{ googleSearch: {} }]
         },
       });
@@ -77,6 +80,7 @@ export class GeminiService {
       }
     } catch (error: any) {
       console.error("Dhivehi GPT Pro Error:", error);
+      // Re-throw so the app can handle specific error types
       throw error;
     }
   }
