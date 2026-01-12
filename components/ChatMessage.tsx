@@ -30,7 +30,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             {isUser ? 'ތިބާ' : 'ދިވެހި GPT'}
           </p>
           <div 
-            className={`leading-relaxed text-gray-800 whitespace-pre-wrap break-words thaana-text text-lg ${textDir === 'rtl' ? 'text-right' : 'text-left'}`}
+            className={`leading-relaxed text-gray-800 whitespace-pre-wrap break-words thaana-text text-xl ${textDir === 'rtl' ? 'text-right' : 'text-left'}`}
             style={{ direction: textDir }}
           >
             {message.content}

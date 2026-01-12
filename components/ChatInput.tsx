@@ -43,7 +43,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
           onKeyDown={handleKeyDown}
           placeholder="ސުވާލެއް އަހާލުމަށް މިތަނުގައި ލިޔުއްވާ..."
           disabled={disabled}
-          className="w-full bg-white border border-gray-200 rounded-2xl py-4 pr-14 pl-14 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none thaana-text text-lg min-h-[56px] text-right"
+          className="w-full bg-white border border-gray-200 rounded-2xl py-4 pr-14 pl-14 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none thaana-text text-xl min-h-[60px] text-right"
           style={{ direction: 'rtl' }}
         />
         

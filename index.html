@@ -10,12 +10,30 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thaana:wght@400;700&display=swap" rel="stylesheet">
     <style>
+      /* Faruma Font Integration */
+      @font-face {
+        font-family: 'Faruma';
+        src: url('https://cdn.jsdelivr.net/gh/mshujau/thaana-fonts@master/Faruma.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+
       body {
-        font-family: 'Noto+Sans+Thaana', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Faruma', 'Noto Sans Thaana', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.8;
       }
+      
       .thaana-text {
-        font-family: 'Noto Sans Thaana', sans-serif;
+        font-family: 'Faruma', 'Noto Sans Thaana', sans-serif;
+        line-height: 1.8;
       }
+
+      /* Adjusting text rendering for Thaana */
+      [dir="rtl"] {
+        text-align: right;
+      }
+
       /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 6px;
