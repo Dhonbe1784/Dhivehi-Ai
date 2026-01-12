@@ -5,18 +5,19 @@ import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import { Message, Role, ChatSession } from './types';
 import { geminiService } from './services/geminiService';
-import { Sparkles, BrainCircuit, Languages } from 'lucide-react';
+import { Sparkles, BrainCircuit, Languages, AlertTriangle } from 'lucide-react';
 
 const App: React.FC = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const currentSession = sessions.find(s => s.id === currentSessionId);
 
   useEffect(() => {
-    // Initial dummy session if none exist
+    // Initial session setup
     if (sessions.length === 0) {
       handleNewChat();
     }
@@ -37,10 +38,12 @@ const App: React.FC = () => {
     };
     setSessions(prev => [newSession, ...prev]);
     setCurrentSessionId(newSession.id);
+    setError(null);
   };
 
   const handleSendMessage = async (content: string) => {
     if (!currentSessionId) return;
+    setError(null);
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -49,7 +52,6 @@ const App: React.FC = () => {
       timestamp: new Date(),
     };
 
-    // Update session title based on first message
     setSessions(prev => prev.map(s => {
       if (s.id === currentSessionId) {
         return {
@@ -73,7 +75,6 @@ const App: React.FC = () => {
       isStreaming: true
     };
 
-    // Add empty bot message for streaming
     setSessions(prev => prev.map(s => {
       if (s.id === currentSessionId) {
         return { ...s, messages: [...s.messages, botMessage] };
@@ -83,8 +84,7 @@ const App: React.FC = () => {
 
     try {
       let fullContent = "";
-      const currentHistory = currentSession?.messages || [];
-      
+      const currentHistory = sessions.find(s => s.id === currentSessionId)?.messages || [];
       const stream = geminiService.streamChat(currentHistory, content);
 
       for await (const chunk of stream) {
@@ -102,7 +102,6 @@ const App: React.FC = () => {
         }));
       }
 
-      // Finalize bot message
       setSessions(prev => prev.map(s => {
         if (s.id === currentSessionId) {
           return {
@@ -115,14 +114,20 @@ const App: React.FC = () => {
         return s;
       }));
 
-    } catch (error) {
-      console.error("Streaming error:", error);
+    } catch (err: any) {
+      console.error("Streaming error:", err);
+      const errorMessage = err.message === "API_KEY_ERROR" 
+        ? "API ކީ ބޭނުމެއް ނުކުރެވުނު. ސެޓިންގްސްގައި ކީ ރަނގަޅުތޯ ބައްލަވާލައްވާ."
+        : "މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.";
+      
+      setError(errorMessage);
+      
       setSessions(prev => prev.map(s => {
         if (s.id === currentSessionId) {
           return {
             ...s,
             messages: s.messages.map(m => 
-              m.id === botMessageId ? { ...m, content: "މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.", isStreaming: false } : m
+              m.id === botMessageId ? { ...m, content: errorMessage, isStreaming: false } : m
             )
           };
         }
@@ -142,6 +147,13 @@ const App: React.FC = () => {
       <p className="text-gray-500 max-w-md mb-12 thaana-text text-lg">
         ދިވެހި ބަހުން ވާހަކަ ދެއްކުމަށާއި، ކަންކަން އޮޅުން ފިލުވުމަށް ތައްޔާރުކުރެވިފައިވާ ޒަމާނީ އޭއައި އެސިސްޓެންޓް.
       </p>
+
+      {error && (
+        <div className="mb-8 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 flex items-center gap-3 thaana-text">
+          <AlertTriangle size={20} />
+          <span>{error}</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
