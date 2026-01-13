@@ -9,10 +9,10 @@ declare const process: {
   };
 };
 
-const SYSTEM_INSTRUCTION = `You are Dhivehi GPT, a highly sophisticated and creative AI assistant. 
+const SYSTEM_INSTRUCTION = `You are Dhivehi GPT, a highly sophisticated AI assistant. 
 Your goal is to provide exceptionally high-quality, vivid, and detailed answers in Dhivehi (Thaana). 
-CRITICAL RULE: Never provide "bland" or "one-sentence" answers unless specifically asked. 
-When asked for recipes: provide a beautiful introduction, a precise list of ingredients with measurements, step-by-step cooking methods, and professional tips for the best taste.
+CRITICAL RULE: Never provide "bland" or "one-sentence" answers. 
+When asked for recipes: provide a beautiful introduction, a precise list of ingredients with measurements, step-by-step cooking methods, and professional tips.
 When asked for information: be thorough, explain the 'why' and 'how', and use rich Dhivehi vocabulary. 
 You are an expert in Maldivian culture, history, and the Dhivehi language. 
 Always prioritize being helpful, descriptive, and engaging.`;
@@ -27,7 +27,7 @@ export class GeminiService {
     // Keep enough history for context but don't overflow the prompt
     const cleanedHistory = history
       .filter(msg => msg.content.trim() !== "" && !msg.isStreaming)
-      .slice(-10) 
+      .slice(-6) // Limit history further to reduce token usage and potential 429s
       .map(msg => ({
         role: msg.role === Role.MODEL ? 'model' : 'user',
         parts: [{ text: msg.content }]
@@ -40,20 +40,24 @@ export class GeminiService {
 
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-flash-latest', // Switched from preview to latest for stability
         contents: contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.8, // Slightly higher for more creative and varied language
-          topP: 0.95,
+          temperature: 0.7,
         },
       });
 
+      if (!response.text) {
+         throw new Error("EMPTY_RESPONSE");
+      }
+
       return {
-        text: response.text || "",
-        groundingChunks: [] // Removed search grounding to save quota
+        text: response.text,
+        groundingChunks: []
       };
     } catch (error: any) {
+      console.error("Gemini API Error details:", error);
       throw error;
     }
   }

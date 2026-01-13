@@ -33,8 +33,13 @@ const App = () => {
     if (cooldown > 0) {
       const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
       return () => clearTimeout(timer);
+    } else if (cooldown === 0 && error) {
+      // Clear generic rate limit error once cooldown is over
+      if (error.includes("ލިމިޓް")) {
+        setError(null);
+      }
     }
-  }, [cooldown]);
+  }, [cooldown, error]);
 
   const handleNewChat = () => {
     const newSession: ChatSession = {
@@ -58,6 +63,8 @@ const App = () => {
 
   const handleSendMessage = async (content: string) => {
     if (!currentSessionId || !content.trim() || isTyping || cooldown > 0) return;
+    
+    // Clear previous error when starting a new message
     setError(null);
 
     const userMessage: Message = {
@@ -69,6 +76,7 @@ const App = () => {
 
     const historySnapshot = currentSession?.messages || [];
 
+    // Optimistically update the UI with user message
     setSessions(prev => prev.map(s => {
       if (s.id === currentSessionId) {
         return {
@@ -91,7 +99,6 @@ const App = () => {
         role: Role.MODEL,
         content: result.text,
         timestamp: new Date(),
-        groundingChunks: result.groundingChunks
       };
 
       setSessions(prev => prev.map(s => {
@@ -111,6 +118,10 @@ const App = () => {
       if (errorStr.includes("RESOURCE_EXHAUSTED") || errorStr.includes("429")) {
         setError("ގޫގުލްގެ ހިލޭ ލިމިޓް ހަމަވެއްޖެ. ކުޑަކޮށް މަޑުކޮށްލެއްވުމަށްފަހު އަލުން މަސައްކަތް ކޮށްލައްވާ.");
         setCooldown(30);
+      } else if (errorStr.includes("SAFETY")) {
+        setError("މައާފް ކުރައްވާ، ތިޔަ ސުވާލަށް ޖަވާބު ދެވޭކަށް ނެތް (Safety Block).");
+      } else if (errorStr.includes("API_KEY") || errorStr.includes("NOT_FOUND")) {
+        setError("އޭޕީއައި ކީ މައްސަލައެއް އުޅޭހެން ހީވޭ. ސެޓިންގްސް ޗެކް ކޮށްލައްވާ.");
       } else {
         setError("މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.");
       }
@@ -207,6 +218,14 @@ const App = () => {
                   </div>
                 </div>
               )}
+              {error && (
+                <div className="max-w-4xl mx-auto px-4 md:px-8 py-4">
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-800 thaana-text">
+                    <AlertCircle size={20} className="shrink-0" />
+                    <span className="text-sm font-bold">{error}</span>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <WelcomeScreen />
@@ -214,14 +233,6 @@ const App = () => {
         </div>
 
         <div className="shrink-0 bg-gradient-to-t from-white via-white to-transparent pt-8 pb-2">
-          {error && cooldown === 0 && (
-             <div className="max-w-4xl mx-auto px-4 mb-4">
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3 text-amber-800 thaana-text text-sm">
-                   <AlertCircle size={16} />
-                   <span>{error}</span>
-                </div>
-             </div>
-          )}
           <ChatInput onSend={handleSendMessage} disabled={isTyping || cooldown > 0} />
         </div>
       </div>
