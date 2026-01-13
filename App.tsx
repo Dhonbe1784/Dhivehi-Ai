@@ -5,7 +5,7 @@ import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import { Message, Role, ChatSession } from './types';
 import { geminiService, StreamResult } from './services/geminiService';
-import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle } from 'lucide-react';
+import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle, RefreshCw } from 'lucide-react';
 
 const App: React.FC = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -128,15 +128,19 @@ const App: React.FC = () => {
       }));
 
     } catch (err: any) {
-      console.error("Dhivehi GPT Pro detailed error:", err);
+      console.error("Dhivehi GPT Pro error handler:", err);
       
       let userFriendlyError = "";
+      const errorStr = JSON.stringify(err).toUpperCase();
       
-      if (err.message === "MISSING_API_KEY") {
-        userFriendlyError = "އޭޕީއައި ކީ (API Key) ފެންނާކަށް ނެތް. ވެރްސެލް ސެޓިންގްސްގައި VITE_GEMINI_API_KEY ހިމަނާފައިވޭތޯ ޗެކްކޮށްލައްވާ.";
+      if (err.message === "MISSING_API_KEY_ON_DEPLOYMENT") {
+        userFriendlyError = "އޭޕީއައި ކީ (API Key) މަދުވެއެވެ. ވެރްސެލް ސެޓިންގްސްގައި VITE_API_KEY ހިމަނާފައިވޭތޯ ޗެކްކޮށްލައްވާ.";
+      } else if (errorStr.includes("RESOURCE_EXHAUSTED") || errorStr.includes("429")) {
+        userFriendlyError = "ހިލޭ ބޭނުންކުރެވޭ މިންވަރު (Free Quota) ހަމަވެއްޖެ. ކުޑަވަގުތުކޮޅަކަށްފަހު އަލުން މަސައްކަތް ކޮށްލައްވާ. ގިނަބަޔަކު އެއްފަހަރާ ބޭނުންކުރާތީ މިހެން ދިމާވެދާނެއެވެ.";
+      } else if (errorStr.includes("API_KEY_INVALID") || errorStr.includes("403")) {
+        userFriendlyError = "އޭޕީއައި ކީ (API Key) ސައްހައެއް ނޫން. އައު ކީ އެއް ހޯއްދަވާ.";
       } else {
-        // Show the actual error message from the API to help the user debug
-        userFriendlyError = `މައްސަލައެއް ދިމާވެއްޖެ: ${err.message || 'Unknown error'}`;
+        userFriendlyError = "މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.";
       }
       
       setError(userFriendlyError);
@@ -172,9 +176,17 @@ const App: React.FC = () => {
       </p>
 
       {error && (
-        <div className="mb-8 p-5 bg-red-50 border border-red-200 rounded-3xl text-red-600 flex items-center gap-4 thaana-text max-w-lg shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-          <AlertCircle size={24} className="shrink-0" />
-          <span className="text-sm font-bold text-right leading-relaxed">{error}</span>
+        <div className="mb-8 p-6 bg-amber-50 border border-amber-200 rounded-[2rem] text-amber-800 flex flex-col items-center gap-4 thaana-text max-w-lg shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-3">
+            <AlertCircle size={24} className="shrink-0 text-amber-600" />
+            <span className="text-sm font-bold text-right leading-relaxed">{error}</span>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 rounded-full text-xs font-bold transition-colors"
+          >
+            <RefreshCw size={14} /> އަލުން ފަށާ
+          </button>
         </div>
       )}
 

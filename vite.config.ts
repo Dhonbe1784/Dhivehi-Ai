@@ -2,20 +2,20 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Declare process for compatibility
+// Declare process for compatibility during build time
 declare const process: any;
 
 export default defineConfig(({ mode }) => {
-  // Load all environment variables
+  // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '');
   
-  // Prioritize VITE_ prefixed keys for standard Vite behavior
-  const apiKey = env.VITE_GEMINI_API_KEY || env.VITE_API_KEY || env.GEMINI_API_KEY || env.API_KEY || "";
+  // We look for VITE_API_KEY as the primary source, then fallbacks
+  const apiKey = env.VITE_API_KEY || env.API_KEY || env.VITE_GEMINI_API_KEY || "";
 
   return {
     plugins: [react()],
     define: {
-      // This ensures 'process.env.API_KEY' is replaced with the actual string during build
+      // This strictly follows the instruction to provide process.env.API_KEY
       'process.env.API_KEY': JSON.stringify(apiKey)
     },
     server: {
