@@ -62,7 +62,7 @@ const Layout: React.FC<LayoutProps> = ({
               <UserRound size={18} className="shrink-0" />
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase tracking-tighter opacity-70">Made by</span>
-                <span className="text-sm font-bold thaana-text">އައްސަދު ޔޫސުފް</span>
+                <span className="text-sm font-bold thaana-text">Dhonbe1784</span>
               </div>
             </div>
 
