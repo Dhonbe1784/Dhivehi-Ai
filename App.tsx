@@ -5,7 +5,7 @@ import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import { Message, Role, ChatSession } from './types';
 import { geminiService } from './services/geminiService';
-import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle, RefreshCw, Clock } from 'lucide-react';
+import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle, RefreshCw, Clock, Trash2 } from 'lucide-react';
 
 const App = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -29,7 +29,6 @@ const App = () => {
     }
   }, [currentSession?.messages, isTyping]);
 
-  // Cooldown timer logic
   useEffect(() => {
     if (cooldown > 0) {
       const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
@@ -46,6 +45,14 @@ const App = () => {
     };
     setSessions(prev => [newSession, ...prev]);
     setCurrentSessionId(newSession.id);
+    setError(null);
+  };
+
+  const handleClearHistory = () => {
+    if (!currentSessionId) return;
+    setSessions(prev => prev.map(s => 
+      s.id === currentSessionId ? { ...s, messages: [], updatedAt: new Date() } : s
+    ));
     setError(null);
   };
 
@@ -125,28 +132,20 @@ const App = () => {
 
     } catch (err: any) {
       console.error("Dhivehi GPT Pro error handler:", err);
-      
-      let userFriendlyError = "";
       const errorStr = JSON.stringify(err).toUpperCase();
       
       if (errorStr.includes("RESOURCE_EXHAUSTED") || errorStr.includes("429")) {
-        userFriendlyError = "ގޫގުލްގެ ހިލޭ ކޯޓާ (Free Quota) ހަމަވެއްޖެ. 60 ސިކުންތު މަޑުކޮށްލައްވާ.";
-        setCooldown(60); // Force a 60-second cooldown on 429
-      } else if (errorStr.includes("MISSING_API_KEY")) {
-        userFriendlyError = "އޭޕީއައި ކީ (API Key) ސެޓްކޮށްފައެއް ނެތް.";
+        setError("ގޫގުލްގެ ހިލޭ ލިމިޓް ހަމަވެއްޖެ. މަޑުކޮށްލައްވާ.");
+        setCooldown(60);
       } else {
-        userFriendlyError = "މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.";
+        setError("މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ.");
       }
-      
-      setError(userFriendlyError);
       
       setSessions(prev => prev.map(s => {
         if (s.id === currentSessionId) {
           return {
             ...s,
-            messages: s.messages.map(m => 
-              m.id === botMessageId ? { ...m, content: userFriendlyError, isStreaming: false } : m
-            )
+            messages: s.messages.filter(m => m.id !== botMessageId)
           };
         }
         return s;
@@ -158,79 +157,43 @@ const App = () => {
 
   const WelcomeScreen = () => (
     <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 text-center bg-transparent gradient-mesh">
-      <div className="relative mb-12">
+      <div className="relative mb-8">
         <div className="absolute inset-0 bg-emerald-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="relative w-24 h-24 bg-emerald-600 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-emerald-500/40 rotate-6 transform hover:rotate-0 transition-transform duration-500">
-          <Sparkles size={48} />
+        <div className="relative w-20 h-20 bg-emerald-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl">
+          <Sparkles size={40} />
         </div>
       </div>
       
-      <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 thaana-text tracking-tight">މިއަދު ކިހިނެއް އެހީތެރިވެދެވޭނީ؟</h2>
-      <p className="text-gray-500 max-w-xl mb-16 thaana-text text-xl md:text-2xl font-light">
-        ދިވެހި ބަހުން ވާހަކަ ދެއްކުމަށާއި، ކަންކަން އޮޅުން ފިލުވުމަށް ތައްޔާރުކުރެވިފައިވާ އެންމެ ޒަމާނީ އޭއައި އެސިސްޓެންޓް.
+      <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 thaana-text tracking-tight">މިއަދު ކިހިނެއް އެހީތެރިވެދެވޭނީ؟</h2>
+      <p className="text-gray-500 max-w-lg mb-12 thaana-text text-lg md:text-xl font-light">
+        ދިވެހި ބަހުން ވާހަކަ ދެއްކުމަށާއި، ކަންކަން އޮޅުން ފިލުވުމަށް ތައްޔާރުކުރެވިފައިވާ އޭއައި އެސިސްޓެންޓް.
       </p>
 
       {cooldown > 0 && (
-        <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-[2rem] text-red-800 flex flex-col items-center gap-4 thaana-text max-w-lg shadow-sm animate-in zoom-in duration-300">
+        <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-[2rem] text-red-800 flex flex-col items-center gap-4 thaana-text max-w-lg shadow-sm animate-pulse">
           <div className="flex items-center gap-3">
-            <Clock size={24} className="shrink-0 text-red-600 animate-spin-slow" />
+            <Clock size={24} className="shrink-0 text-red-600" />
             <span className="text-sm font-bold text-right leading-relaxed">ގޫގުލްގެ ހިލޭ ލިމިޓް ހަމަވެއްޖެ. އަލުން ފޮނުވޭނީ {cooldown} ސިކުންތު ފަހުން.</span>
           </div>
         </div>
       )}
 
-      {error && cooldown === 0 && (
-        <div className="mb-8 p-6 bg-amber-50 border border-amber-200 rounded-[2rem] text-amber-800 flex flex-col items-center gap-4 thaana-text max-w-lg shadow-sm">
-          <div className="flex items-center gap-3">
-            <AlertCircle size={24} className="shrink-0 text-amber-600" />
-            <span className="text-sm font-bold text-right leading-relaxed">{error}</span>
-          </div>
-          <button 
-            onClick={() => window.location.reload()}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 rounded-full text-xs font-bold transition-colors"
-          >
-            <RefreshCw size={14} /> އަލުން ފަށާ
-          </button>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl px-4">
         {[
-          {
-            title: "ތާރީހީ މައުލޫމާތު",
-            desc: "ދިވެހިރާއްޖޭގެ ތާރީހާއި ސަގާފަތާ ބެހޭގޮތުން ސުވާލުކުރައްވާ.",
-            icon: <BrainCircuit size={24} />,
-            color: "emerald",
-            prompt: "ދިވެހިރާއްޖޭގެ ތާރީހާ ބެހޭގޮތުން ކުރުކޮށް ކިޔައިދީ"
-          },
-          {
-            title: "ބަހުގެ އެހީތެރިކަން",
-            desc: "ލިޔުންތައް އިސްލާހުކުރުމަށާއި ބަހުގެ ގަވާއިދަށް އެހީތެރިވެދޭނެ.",
-            icon: <Languages size={24} />,
-            color: "blue",
-            prompt: "ދިވެހި ބަހުގެ ގަވާއިދުގައި 'ކަށަވަށް' މި ބަހުގެ މާނައަކީ ކޮބައި؟"
-          },
-          {
-            title: "މައުލޫމާތު ހޯދުން",
-            desc: "ތަފާތު މައުލޫމާތުތައް ހޯދުމަށް ސުވާލުކުރައްވާ.",
-            icon: <Globe size={24} />,
-            color: "orange",
-            prompt: "ކާބޯތަކެތީގެ ފައިދާތަކަކީ ކޮބައި؟"
-          }
+          { title: "ތާރީހު", icon: <BrainCircuit size={20} />, color: "emerald", prompt: "ދިވެހިރާއްޖޭގެ ތާރީހާ ބެހޭގޮތުން ކިޔައިދީ" },
+          { title: "ބަސް", icon: <Languages size={20} />, color: "blue", prompt: "ދިވެހި ބަހުގެ ގަވާއިދާ ބެހޭގޮތުން ސުވާލެއް" },
+          { title: "މައުލޫމާތު", icon: <Globe size={20} />, color: "orange", prompt: "ފައިދާހުރި ކާނާއަކީ ކޮބައި؟" }
         ].map((item, idx) => (
           <button 
             key={idx}
             disabled={cooldown > 0}
             onClick={() => handleSendMessage(item.prompt)}
-            className={`group bg-white p-7 rounded-[2.5rem] border border-gray-100 hover:border-${item.color}-200 hover:shadow-2xl transition-all text-right flex flex-col items-start gap-6 transform hover:-translate-y-2 disabled:opacity-50 disabled:cursor-not-allowed`}
+            className="bg-white p-6 rounded-[2rem] border border-gray-100 hover:border-emerald-200 hover:shadow-xl transition-all text-right flex flex-col items-center gap-3 disabled:opacity-50"
           >
-            <div className={`w-14 h-14 bg-${item.color}-50 text-${item.color}-600 rounded-2xl flex items-center justify-center group-hover:bg-${item.color}-600 group-hover:text-white transition-all duration-300 shadow-sm`}>
+            <div className={`w-10 h-10 bg-${item.color}-50 text-${item.color}-600 rounded-xl flex items-center justify-center`}>
               {item.icon}
             </div>
-            <div>
-              <h3 className="font-bold text-gray-900 mb-2 thaana-text text-xl">{item.title}</h3>
-              <p className="text-sm text-gray-400 thaana-text leading-relaxed">{item.desc}</p>
-            </div>
+            <h3 className="font-bold text-gray-800 thaana-text">{item.title}</h3>
           </button>
         ))}
       </div>
@@ -245,47 +208,45 @@ const App = () => {
       onSelectSession={(id) => setCurrentSessionId(id)}
     >
       <div className="flex-1 flex flex-col min-h-0 chat-bg-pattern relative">
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white to-transparent z-[5] pointer-events-none"></div>
-        
-        <div 
-          ref={scrollRef}
-          className="flex-1 overflow-y-auto scroll-smooth pt-12"
-        >
+        <header className="h-14 flex items-center px-4 justify-between border-b bg-white/50 backdrop-blur-sm z-10">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleClearHistory}
+              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all flex items-center gap-2"
+              title="ހިސްޓްރީ ފޮހެލާ"
+            >
+              <Trash2 size={18} />
+              <span className="text-xs font-bold thaana-text hidden sm:inline">ހިސްޓްރީ ފޮހެލާ</span>
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            {cooldown > 0 && <span className="text-[10px] font-bold text-red-500 animate-pulse">{cooldown}s</span>}
+            <div className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded border border-emerald-100">FREE TIER</div>
+          </div>
+        </header>
+
+        <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-smooth pt-4">
           {currentSession && currentSession.messages.length > 0 ? (
             <div className="flex flex-col pb-40">
               {currentSession.messages.map((msg) => (
-                <ChatMessage 
-                  key={msg.id} 
-                  message={msg} 
-                />
+                <ChatMessage key={msg.id} message={msg} />
               ))}
-              {isTyping && !currentSession.messages[currentSession.messages.length - 1].isStreaming && (
-                <div className="py-12 bg-gray-50/30">
-                   <div className="max-w-4xl mx-auto px-4 md:px-8 flex gap-8">
-                      <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 animate-pulse">
-                        <Sparkles size={22} />
-                      </div>
-                      <div className="flex gap-2 items-center">
-                        <div className="w-3.5 h-3.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                        <div className="w-3.5 h-3.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                        <div className="w-3.5 h-3.5 bg-emerald-400 rounded-full animate-bounce"></div>
-                      </div>
-                   </div>
-                </div>
-              )}
             </div>
           ) : (
             <WelcomeScreen />
           )}
         </div>
 
-        <div className="shrink-0 bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-2">
-          <ChatInput onSend={handleSendMessage} disabled={isTyping || cooldown > 0} />
-          {cooldown > 0 && (
-             <div className="max-w-4xl mx-auto px-4 text-center">
-               <span className="text-[10px] font-bold text-red-500 thaana-text">ލިމިޓް ހަމަވުމުގެ ސަބަބުން މަޑުކޮށްލައްވާ: {cooldown} ސިކުންތު</span>
+        <div className="shrink-0 bg-gradient-to-t from-white via-white to-transparent pt-8 pb-2">
+          {error && cooldown === 0 && (
+             <div className="max-w-4xl mx-auto px-4 mb-4">
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3 text-amber-800 thaana-text text-sm">
+                   <AlertCircle size={16} />
+                   <span>{error}</span>
+                </div>
              </div>
           )}
+          <ChatInput onSend={handleSendMessage} disabled={isTyping || cooldown > 0} />
         </div>
       </div>
     </Layout>

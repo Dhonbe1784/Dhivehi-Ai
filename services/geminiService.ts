@@ -10,12 +10,7 @@ declare const process: {
   };
 };
 
-const SYSTEM_INSTRUCTION = `You are "Dhivehi GPT Lite". 
-Rules:
-1. Respond ONLY in Dhivehi (Thaana).
-2. BE EXTREMELY CONCISE. Use as few words as possible.
-3. No introductions. No "As an AI".
-4. Direct answers only.`;
+const SYSTEM_INSTRUCTION = "You are Dhivehi GPT. Direct answers in Dhivehi (Thaana). Be extremely brief.";
 
 export class GeminiService {
   async *streamChat(history: Message[], currentMessage: string) {
@@ -25,8 +20,8 @@ export class GeminiService {
       throw new Error("MISSING_API_KEY");
     }
 
-    // AGGRESSIVE TRUNCATION: Only take the last 4 messages to save tokens
-    const recentHistory = history.slice(-4);
+    // MINIMAL HISTORY: Only take the last 2 messages (1 exchange) to keep token count extremely low
+    const recentHistory = history.slice(-2);
     
     const cleanedHistory = recentHistory
       .filter(msg => msg.content.trim() !== "" && !msg.isStreaming)
@@ -44,11 +39,11 @@ export class GeminiService {
     
     try {
       const result = await ai.models.generateContentStream({
-        model: 'gemini-flash-lite-latest',
+        model: 'gemini-3-flash-preview',
         contents: contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.1, // Low temperature for faster, predictable responses
+          temperature: 0.1,
           tools: [] 
         },
       });
@@ -60,7 +55,6 @@ export class GeminiService {
         }
       }
     } catch (error: any) {
-      // Pass the raw error up to App.tsx for specialized handling
       throw error;
     }
   }
