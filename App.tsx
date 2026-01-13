@@ -5,7 +5,7 @@ import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import { Message, Role, ChatSession } from './types';
 import { geminiService } from './services/geminiService';
-import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle, RefreshCw, Clock, Trash2 } from 'lucide-react';
+import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle, Clock, Trash2 } from 'lucide-react';
 
 const App = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -131,14 +131,14 @@ const App = () => {
       }));
 
     } catch (err: any) {
-      console.error("Dhivehi GPT Pro error handler:", err);
-      const errorStr = JSON.stringify(err).toUpperCase();
+      console.error("Dhivehi GPT Error:", err);
+      const errorStr = String(err).toUpperCase();
       
       if (errorStr.includes("RESOURCE_EXHAUSTED") || errorStr.includes("429")) {
-        setError("ގޫގުލްގެ ހިލޭ ލިމިޓް ހަމަވެއްޖެ. މަޑުކޮށްލައްވާ.");
-        setCooldown(60);
+        setError("ގޫގުލްގެ ހިލޭ ލިމިޓް ހަމަވެއްޖެ. ކުޑަކޮށް މަޑުކޮށްލެއްވުމަށްފަހު އަލުން މަސައްކަތް ކޮށްލައްވާ.");
+        setCooldown(30);
       } else {
-        setError("މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ.");
+        setError("މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.");
       }
       
       setSessions(prev => prev.map(s => {
@@ -221,7 +221,7 @@ const App = () => {
           </div>
           <div className="flex items-center gap-2">
             {cooldown > 0 && <span className="text-[10px] font-bold text-red-500 animate-pulse">{cooldown}s</span>}
-            <div className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded border border-emerald-100">FREE TIER</div>
+            <div className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded border border-emerald-100 uppercase tracking-tighter">Connected</div>
           </div>
         </header>
 

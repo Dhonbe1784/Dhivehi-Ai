@@ -10,7 +10,7 @@ declare const process: {
   };
 };
 
-const SYSTEM_INSTRUCTION = "You are Dhivehi GPT. Direct answers in Dhivehi (Thaana). Be extremely brief.";
+const SYSTEM_INSTRUCTION = "You are Dhivehi GPT. Direct answers in Dhivehi (Thaana). Be extremely brief and concise.";
 
 export class GeminiService {
   async *streamChat(history: Message[], currentMessage: string) {
@@ -20,8 +20,10 @@ export class GeminiService {
       throw new Error("MISSING_API_KEY");
     }
 
-    // MINIMAL HISTORY: Only take the last 2 messages (1 exchange) to keep token count extremely low
-    const recentHistory = history.slice(-2);
+    const ai = new GoogleGenAI({ apiKey: apiKey });
+
+    // Keep history minimal to stay under token limits
+    const recentHistory = history.slice(-4);
     
     const cleanedHistory = recentHistory
       .filter(msg => msg.content.trim() !== "" && !msg.isStreaming)
@@ -34,17 +36,14 @@ export class GeminiService {
       ...cleanedHistory,
       { role: 'user', parts: [{ text: currentMessage }] }
     ];
-
-    const ai = new GoogleGenAI({ apiKey: apiKey });
     
     try {
       const result = await ai.models.generateContentStream({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-flash-lite-latest',
         contents: contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.1,
-          tools: [] 
+          temperature: 0.7,
         },
       });
 
