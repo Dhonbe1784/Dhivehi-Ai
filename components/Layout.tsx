@@ -57,12 +57,12 @@ const Layout: React.FC<LayoutProps> = ({
           </div>
 
           <div className="pt-4 border-t border-gray-800 space-y-1">
-            {/* Added creator name here */}
-            <div className="px-4 py-3 flex items-center gap-3 text-emerald-500/80 mb-2">
+            {/* Creator name section */}
+            <div className="px-4 py-3 flex items-center gap-3 text-emerald-500 mb-2">
               <UserRound size={18} className="shrink-0" />
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase tracking-tighter opacity-70">Made by</span>
-                <span className="text-sm font-bold thaana-text">Dhonbe1784</span>
+                <span className="text-sm font-bold">Dhonbe1784 and Kudoo</span>
               </div>
             </div>
 
