@@ -128,11 +128,15 @@ const App: React.FC = () => {
       }));
 
     } catch (err: any) {
-      console.error("Pro Session Error:", err);
-      let userFriendlyError = "މައާފް ކުރައްވާ، މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.";
+      console.error("Dhivehi GPT Pro detailed error:", err);
       
-      if (err.message?.includes("API Key")) {
-        userFriendlyError = "އޭޕީއައި ކީ (API Key) މަދުވެއެވެ. ވެރްސެލް ސެޓިންގްސްގައި ކީ ހިމަނާފައިވޭތޯ ޗެކްކޮށްލައްވާ.";
+      let userFriendlyError = "";
+      
+      if (err.message === "MISSING_API_KEY") {
+        userFriendlyError = "އޭޕީއައި ކީ (API Key) ފެންނާކަށް ނެތް. ވެރްސެލް ސެޓިންގްސްގައި VITE_GEMINI_API_KEY ހިމަނާފައިވޭތޯ ޗެކްކޮށްލައްވާ.";
+      } else {
+        // Show the actual error message from the API to help the user debug
+        userFriendlyError = `މައްސަލައެއް ދިމާވެއްޖެ: ${err.message || 'Unknown error'}`;
       }
       
       setError(userFriendlyError);
@@ -168,9 +172,9 @@ const App: React.FC = () => {
       </p>
 
       {error && (
-        <div className="mb-8 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 flex items-center gap-3 thaana-text max-w-lg">
-          <AlertCircle size={20} className="shrink-0" />
-          <span className="text-sm font-bold">{error}</span>
+        <div className="mb-8 p-5 bg-red-50 border border-red-200 rounded-3xl text-red-600 flex items-center gap-4 thaana-text max-w-lg shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+          <AlertCircle size={24} className="shrink-0" />
+          <span className="text-sm font-bold text-right leading-relaxed">{error}</span>
         </div>
       )}
 

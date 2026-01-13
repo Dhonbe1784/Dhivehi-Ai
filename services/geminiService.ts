@@ -9,18 +9,14 @@ declare const process: {
   };
 };
 
-const SYSTEM_INSTRUCTION = `You are "Dhivehi GPT Pro", a specialized AI expert for the Maldives. 
+const SYSTEM_INSTRUCTION = `You are "Dhivehi GPT Pro", a highly intelligent and direct AI expert for the Maldives. 
 
-CRITICAL RULES:
-1. NO INTRODUCTIONS: Do not start with "I am an AI", "As a language model", or any greetings unless asked. 
-2. DIRECT ANSWERS: If a user asks a question, provide the factual answer in Dhivehi immediately.
-3. LANGUAGE: Use fluent, natural Dhivehi (Thaana script). Use modern Maldivian terminology.
-4. SEARCH USAGE: Use the Google Search tool for all queries related to current events, Maldivian laws, history, or facts to ensure 100% accuracy.
-5. FORMATTING: Ensure RTL (Right-to-Left) alignment is perfect. Use bullet points for readability.
-
-Example: 
-User: "މިއަދުގެ ފަތިސް ނަމާދު ވަގުތަކީ ކޮބައި؟"
-Response: [Search for prayer times] -> "މިއަދު މާލޭގައި ފަތިސް ނަމާދު ވަގުތަކީ 05:12 އެވެ."`;
+CRITICAL OPERATING PROCEDURES:
+1. DO NOT INTRODUCE YOURSELF: Never say "I am an AI", "As a language model", or "I was trained by Google". 
+2. START IMMEDIATELY: Provide the answer to the user's question as the very first sentence of your response.
+3. LANGUAGE: Use professional, fluent Dhivehi (Thaana script).
+4. FACTUAL ACCURACY: Use the Google Search tool for ALL questions about Maldivian history, current events, local laws, or geography.
+5. FORMATTING: Use clear line breaks. For lists, use bullet points.`;
 
 export interface StreamResult {
   text: string;
@@ -32,10 +28,13 @@ export class GeminiService {
 
   private getClient() {
     if (!this.ai) {
-      const apiKey = process.env.API_KEY;
-      if (!apiKey || apiKey === "undefined") {
-        throw new Error("API Key is missing. Please set VITE_GEMINI_API_KEY in your Vercel settings.");
+      // Check process.env (injected by Vite)
+      let apiKey = process.env.API_KEY;
+      
+      if (!apiKey || apiKey === "undefined" || apiKey === "null" || apiKey.trim() === "") {
+        throw new Error("MISSING_API_KEY");
       }
+      
       this.ai = new GoogleGenAI({ apiKey: apiKey });
     }
     return this.ai;
@@ -44,7 +43,6 @@ export class GeminiService {
   async *streamChat(history: Message[], currentMessage: string) {
     const ai = this.getClient();
     
-    // Ensure history is sanitized for the API
     const cleanedHistory = history
       .filter(msg => msg.content.trim() !== "" && !msg.isStreaming)
       .map(msg => ({
@@ -59,11 +57,11 @@ export class GeminiService {
 
     try {
       const result = await ai.models.generateContentStream({
-        model: 'gemini-3-flash-preview', // Flash is often more stable for hobby projects on Vercel
+        model: 'gemini-3-flash-preview',
         contents: contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.2, // Lower temperature for more direct, factual answers
+          temperature: 0.1,
           topP: 0.8,
           tools: [{ googleSearch: {} }]
         },
@@ -79,8 +77,7 @@ export class GeminiService {
         }
       }
     } catch (error: any) {
-      console.error("Dhivehi GPT Pro Error:", error);
-      // Re-throw so the app can handle specific error types
+      console.error("Dhivehi GPT Pro API Error:", error);
       throw error;
     }
   }
