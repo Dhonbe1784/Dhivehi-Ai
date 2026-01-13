@@ -10,7 +10,7 @@ declare const process: {
   };
 };
 
-const SYSTEM_INSTRUCTION = "You are Dhivehi GPT. Direct answers in Dhivehi (Thaana). Be extremely brief and concise.";
+const SYSTEM_INSTRUCTION = "You are Dhivehi GPT, a helpful and highly capable AI assistant. Provide detailed, helpful, and creative answers in Dhivehi (Thaana). When asked for recipes, guides, or information, be thorough and descriptive to ensure the user gets high-quality results. Do not be overly brief unless explicitly asked.";
 
 export class GeminiService {
   async *streamChat(history: Message[], currentMessage: string) {
@@ -22,8 +22,8 @@ export class GeminiService {
 
     const ai = new GoogleGenAI({ apiKey: apiKey });
 
-    // Keep history minimal to stay under token limits
-    const recentHistory = history.slice(-4);
+    // Keep history manageable but sufficient for context
+    const recentHistory = history.slice(-6);
     
     const cleanedHistory = recentHistory
       .filter(msg => msg.content.trim() !== "" && !msg.isStreaming)
@@ -39,11 +39,11 @@ export class GeminiService {
     
     try {
       const result = await ai.models.generateContentStream({
-        model: 'gemini-flash-lite-latest',
+        model: 'gemini-3-flash-preview',
         contents: contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.7,
+          temperature: 0.8, // Slightly higher for more creative/less bland answers
         },
       });
 
