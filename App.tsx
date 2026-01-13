@@ -12,6 +12,7 @@ const App = () => {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const currentSession = sessions.find(s => s.id === currentSessionId);
@@ -28,6 +29,14 @@ const App = () => {
     }
   }, [currentSession?.messages, isTyping]);
 
+  // Cooldown timer logic
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
+
   const handleNewChat = () => {
     const newSession: ChatSession = {
       id: crypto.randomUUID(),
@@ -41,7 +50,7 @@ const App = () => {
   };
 
   const handleSendMessage = async (content: string) => {
-    if (!currentSessionId || !content.trim() || isTyping) return;
+    if (!currentSessionId || !content.trim() || isTyping || cooldown > 0) return;
     setError(null);
 
     const userMessage: Message = {
@@ -121,7 +130,8 @@ const App = () => {
       const errorStr = JSON.stringify(err).toUpperCase();
       
       if (errorStr.includes("RESOURCE_EXHAUSTED") || errorStr.includes("429")) {
-        userFriendlyError = "ގިނަބަޔަކު އެއްފަހަރާ ބޭނުންކުރާތީ ހިލޭ ބޭނުންކުރެވޭ މިންވަރު ހަމަވެއްޖެ. މިނެޓެއްހާއިރު މަޑުކޮށްލެއްވުމަށްފަހު އަލުން މަސައްކަތް ކޮށްލައްވާ.";
+        userFriendlyError = "ގޫގުލްގެ ހިލޭ ކޯޓާ (Free Quota) ހަމަވެއްޖެ. 60 ސިކުންތު މަޑުކޮށްލައްވާ.";
+        setCooldown(60); // Force a 60-second cooldown on 429
       } else if (errorStr.includes("MISSING_API_KEY")) {
         userFriendlyError = "އޭޕީއައި ކީ (API Key) ސެޓްކޮށްފައެއް ނެތް.";
       } else {
@@ -160,10 +170,19 @@ const App = () => {
         ދިވެހި ބަހުން ވާހަކަ ދެއްކުމަށާއި، ކަންކަން އޮޅުން ފިލުވުމަށް ތައްޔާރުކުރެވިފައިވާ އެންމެ ޒަމާނީ އޭއައި އެސިސްޓެންޓް.
       </p>
 
-      {error && (
-        <div className="mb-8 p-6 bg-amber-50 border border-amber-200 rounded-[2rem] text-amber-800 flex flex-col items-center gap-4 thaana-text max-w-lg shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+      {cooldown > 0 && (
+        <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-[2rem] text-red-800 flex flex-col items-center gap-4 thaana-text max-w-lg shadow-sm animate-in zoom-in duration-300">
           <div className="flex items-center gap-3">
-            <Clock size={24} className="shrink-0 text-amber-600" />
+            <Clock size={24} className="shrink-0 text-red-600 animate-spin-slow" />
+            <span className="text-sm font-bold text-right leading-relaxed">ގޫގުލްގެ ހިލޭ ލިމިޓް ހަމަވެއްޖެ. އަލުން ފޮނުވޭނީ {cooldown} ސިކުންތު ފަހުން.</span>
+          </div>
+        </div>
+      )}
+
+      {error && cooldown === 0 && (
+        <div className="mb-8 p-6 bg-amber-50 border border-amber-200 rounded-[2rem] text-amber-800 flex flex-col items-center gap-4 thaana-text max-w-lg shadow-sm">
+          <div className="flex items-center gap-3">
+            <AlertCircle size={24} className="shrink-0 text-amber-600" />
             <span className="text-sm font-bold text-right leading-relaxed">{error}</span>
           </div>
           <button 
@@ -201,8 +220,9 @@ const App = () => {
         ].map((item, idx) => (
           <button 
             key={idx}
+            disabled={cooldown > 0}
             onClick={() => handleSendMessage(item.prompt)}
-            className={`group bg-white p-7 rounded-[2.5rem] border border-gray-100 hover:border-${item.color}-200 hover:shadow-2xl transition-all text-right flex flex-col items-start gap-6 transform hover:-translate-y-2`}
+            className={`group bg-white p-7 rounded-[2.5rem] border border-gray-100 hover:border-${item.color}-200 hover:shadow-2xl transition-all text-right flex flex-col items-start gap-6 transform hover:-translate-y-2 disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             <div className={`w-14 h-14 bg-${item.color}-50 text-${item.color}-600 rounded-2xl flex items-center justify-center group-hover:bg-${item.color}-600 group-hover:text-white transition-all duration-300 shadow-sm`}>
               {item.icon}
@@ -260,7 +280,12 @@ const App = () => {
         </div>
 
         <div className="shrink-0 bg-gradient-to-t from-white via-white/95 to-transparent pt-12 pb-2">
-          <ChatInput onSend={handleSendMessage} disabled={isTyping} />
+          <ChatInput onSend={handleSendMessage} disabled={isTyping || cooldown > 0} />
+          {cooldown > 0 && (
+             <div className="max-w-4xl mx-auto px-4 text-center">
+               <span className="text-[10px] font-bold text-red-500 thaana-text">ލިމިޓް ހަމަވުމުގެ ސަބަބުން މަޑުކޮށްލައްވާ: {cooldown} ސިކުންތު</span>
+             </div>
+          )}
         </div>
       </div>
     </Layout>
