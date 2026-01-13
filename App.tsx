@@ -4,8 +4,8 @@ import Layout from './components/Layout';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import { Message, Role, ChatSession } from './types';
-import { geminiService, StreamResult } from './services/geminiService';
-import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle, RefreshCw } from 'lucide-react';
+import { geminiService } from './services/geminiService';
+import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle, RefreshCw, Clock } from 'lucide-react';
 
 const App = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -87,12 +87,8 @@ const App = () => {
       let fullContent = "";
       const stream = geminiService.streamChat(historySnapshot, content);
 
-      for await (const result of stream) {
-        const chunk = result as StreamResult;
-        if (chunk.text) {
-          fullContent += chunk.text;
-        }
-
+      for await (const text of stream) {
+        fullContent += text;
         setSessions(prev => prev.map(s => {
           if (s.id === currentSessionId) {
             return {
@@ -125,9 +121,9 @@ const App = () => {
       const errorStr = JSON.stringify(err).toUpperCase();
       
       if (errorStr.includes("RESOURCE_EXHAUSTED") || errorStr.includes("429")) {
-        userFriendlyError = "މަސައްކަތް ކުރެވޭ ލިމިޓް (Free Quota) ހަމަވެއްޖެ. ކުޑަވަގުތުކޮޅަކަށްފަހު އަލުން މަސައްކަތް ކޮށްލައްވާ.";
-      } else if (errorStr.includes("BILLING") || errorStr.includes("ACCOUNT")) {
-        userFriendlyError = "އޭޕީއައި ކީ ބޭނުންކުރުމުގައި ބިލިންގް މައްސަލައެއް ދިމާވެއްޖެ. ގޫގުލް އޭއައި ސްޓޫޑިއޯގެ ސެޓިންގްސް ޗެކްކޮށްލައްވާ.";
+        userFriendlyError = "ގިނަބަޔަކު އެއްފަހަރާ ބޭނުންކުރާތީ ހިލޭ ބޭނުންކުރެވޭ މިންވަރު ހަމަވެއްޖެ. މިނެޓެއްހާއިރު މަޑުކޮށްލެއްވުމަށްފަހު އަލުން މަސައްކަތް ކޮށްލައްވާ.";
+      } else if (errorStr.includes("MISSING_API_KEY")) {
+        userFriendlyError = "އޭޕީއައި ކީ (API Key) ސެޓްކޮށްފައެއް ނެތް.";
       } else {
         userFriendlyError = "މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.";
       }
@@ -167,7 +163,7 @@ const App = () => {
       {error && (
         <div className="mb-8 p-6 bg-amber-50 border border-amber-200 rounded-[2rem] text-amber-800 flex flex-col items-center gap-4 thaana-text max-w-lg shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center gap-3">
-            <AlertCircle size={24} className="shrink-0 text-amber-600" />
+            <Clock size={24} className="shrink-0 text-amber-600" />
             <span className="text-sm font-bold text-right leading-relaxed">{error}</span>
           </div>
           <button 
