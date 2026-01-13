@@ -1,14 +1,13 @@
 
 import React from 'react';
 import { Role, Message } from '../types';
-import { User, Bot, Copy, ThumbsUp, ThumbsDown, Check, Share2, Globe } from 'lucide-react';
+import { User, Bot, Copy, ThumbsUp, ThumbsDown, Check, Share2 } from 'lucide-react';
 
 interface ChatMessageProps {
   message: Message;
-  groundingChunks?: any[];
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, groundingChunks }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.role === Role.USER;
   const [copied, setCopied] = React.useState(false);
 
@@ -24,11 +23,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, groundingChunks }) =
   };
 
   const textDir = isDhivehi(message.content) ? 'rtl' : 'ltr';
-
-  // Extract unique URLs from grounding chunks
-  const sources = groundingChunks
-    ?.map(chunk => chunk.web?.uri)
-    .filter((uri, index, self) => uri && self.indexOf(uri) === index) || [];
 
   return (
     <div className={`w-full ${isUser ? 'bg-transparent' : 'bg-gray-50/70 border-y border-gray-100/50'}`}>
@@ -57,27 +51,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, groundingChunks }) =
               <span className="inline-block w-2 h-6 bg-emerald-500/50 animate-pulse mr-2 align-middle rounded-full"></span>
             )}
           </div>
-
-          {!isUser && sources.length > 0 && (
-            <div className="mt-6 border-t border-gray-200/50 pt-4">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2 thaana-text">
-                <Globe size={12} /> މަސްދަރުތައް (Sources)
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {sources.map((url, i) => (
-                  <a 
-                    key={i} 
-                    href={url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 bg-white border border-gray-200 rounded-full text-[10px] text-emerald-600 hover:border-emerald-500 transition-all flex items-center gap-2 shadow-sm truncate max-w-[200px]"
-                  >
-                    <span className="truncate">{new URL(url).hostname}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
 
           {!isUser && !message.isStreaming && message.content.length > 0 && (
             <div className={`flex items-center gap-4 mt-8 ${textDir === 'rtl' ? 'justify-start' : 'justify-end'}`}>

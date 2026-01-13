@@ -83,53 +83,27 @@ const App = () => {
 
     setIsTyping(true);
 
-    const botMessageId = crypto.randomUUID();
-    const botMessage: Message = {
-      id: botMessageId,
-      role: Role.MODEL,
-      content: '',
-      timestamp: new Date(),
-      isStreaming: true
-    };
-
-    setSessions(prev => prev.map(s => {
-      if (s.id === currentSessionId) {
-        return { ...s, messages: [...s.messages, botMessage] };
-      }
-      return s;
-    }));
-
     try {
-      let fullContent = "";
-      const stream = geminiService.streamChat(historySnapshot, content);
+      const result = await geminiService.sendMessage(historySnapshot, content);
 
-      for await (const text of stream) {
-        fullContent += text;
-        setSessions(prev => prev.map(s => {
-          if (s.id === currentSessionId) {
-            return {
-              ...s,
-              messages: s.messages.map(m => 
-                m.id === botMessageId ? { ...m, content: fullContent } : m
-              )
-            };
-          }
-          return s;
-        }));
-      }
+      const botMessage: Message = {
+        id: crypto.randomUUID(),
+        role: Role.MODEL,
+        content: result.text,
+        timestamp: new Date(),
+        groundingChunks: result.groundingChunks
+      };
 
       setSessions(prev => prev.map(s => {
         if (s.id === currentSessionId) {
           return {
             ...s,
-            messages: s.messages.map(m => 
-              m.id === botMessageId ? { ...m, isStreaming: false } : m
-            )
+            messages: [...s.messages, botMessage],
+            updatedAt: new Date()
           };
         }
         return s;
       }));
-
     } catch (err: any) {
       console.error("Dhivehi GPT Error:", err);
       const errorStr = String(err).toUpperCase();
@@ -140,16 +114,6 @@ const App = () => {
       } else {
         setError("މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.");
       }
-      
-      setSessions(prev => prev.map(s => {
-        if (s.id === currentSessionId) {
-          return {
-            ...s,
-            messages: s.messages.filter(m => m.id !== botMessageId)
-          };
-        }
-        return s;
-      }));
     } finally {
       setIsTyping(false);
     }
@@ -231,6 +195,18 @@ const App = () => {
               {currentSession.messages.map((msg) => (
                 <ChatMessage key={msg.id} message={msg} />
               ))}
+              {isTyping && (
+                <div className="max-w-4xl mx-auto px-4 md:px-8 py-10 flex gap-4 md:gap-10">
+                  <div className="w-10 h-10 shrink-0 rounded-xl bg-emerald-600 border border-emerald-500 text-white flex items-center justify-center animate-pulse">
+                    <Sparkles size={22} />
+                  </div>
+                  <div className="flex-1 flex items-center gap-1">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <WelcomeScreen />

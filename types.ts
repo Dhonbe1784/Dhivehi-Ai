@@ -11,6 +11,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   isStreaming?: boolean;
+  groundingChunks?: any[];
 }
 
 export interface ChatSession {
