@@ -44,7 +44,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, groundingChunks }) =
         <div className="flex-1 min-w-0 flex flex-col">
           <div className={`flex items-center gap-2 mb-3 ${textDir === 'rtl' ? 'flex-row' : 'flex-row-reverse'}`}>
              <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] thaana-text">
-               {isUser ? 'ތިބާ' : 'ދިވެހި GPT PRO'}
+               {isUser ? 'ތިބާ' : 'BETA DHIVEHI AI'}
              </span>
           </div>
 

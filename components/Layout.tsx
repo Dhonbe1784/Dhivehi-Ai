@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Menu, Plus, MessageSquare, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Menu, Plus, MessageSquare, Settings, LogOut, ChevronLeft, ChevronRight, UserRound } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -57,6 +57,15 @@ const Layout: React.FC<LayoutProps> = ({
           </div>
 
           <div className="pt-4 border-t border-gray-800 space-y-1">
+            {/* Added creator name here */}
+            <div className="px-4 py-3 flex items-center gap-3 text-emerald-500/80 mb-2">
+              <UserRound size={18} className="shrink-0" />
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-tighter opacity-70">Made by</span>
+                <span className="text-sm font-bold thaana-text">އައްސަދު ޔޫސުފް</span>
+              </div>
+            </div>
+
             <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 transition-colors text-right text-gray-400">
               <Settings size={18} />
               <span className="text-sm thaana-text">ސެޓިންގްސް</span>
@@ -85,7 +94,7 @@ const Layout: React.FC<LayoutProps> = ({
               <div className="w-7 h-7 bg-emerald-600 rounded flex items-center justify-center text-white shadow-sm">
                 <span className="text-[10px] font-black">DV</span>
               </div>
-              <h1 className="font-bold text-gray-800 text-sm md:text-base">Test Dhivehi GPT</h1>
+              <h1 className="font-bold text-gray-800 text-sm md:text-base">Beta Dhivehi AI</h1>
             </div>
           </div>
           

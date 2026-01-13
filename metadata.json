@@ -1,5 +1,5 @@
 {
-  "name": "Test Dhivehi GPT",
+  "name": "Beta Dhivehi AI",
   "description": "A sophisticated AI assistant optimized for Dhivehi language and Maldivian cultural context, providing a seamless chat experience with RTL support.",
   "requestFramePermissions": [
     "microphone"
