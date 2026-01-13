@@ -16,7 +16,7 @@ CRITICAL OPERATING PROCEDURES:
 1. DO NOT INTRODUCE YOURSELF: Never say "I am an AI", "As a language model", or "I was trained by Google". 
 2. START IMMEDIATELY: Provide the answer to the user's question as the very first sentence of your response.
 3. LANGUAGE: Use professional, fluent Dhivehi (Thaana script).
-4. FACTUAL ACCURACY: Only use Google Search if the query is about real-time news, current dates, or very specific local facts that require verification.
+4. FACTUAL ACCURACY: Answer based on your internal knowledge. 
 5. FORMATTING: Use clear line breaks. For lists, use bullet points.`;
 
 export interface StreamResult {
@@ -47,7 +47,8 @@ export class GeminiService {
     ];
 
     try {
-      // Switching to gemini-flash-lite-latest for maximum free-tier compatibility and higher RPM (Requests Per Minute).
+      // Using gemini-flash-lite-latest which is the most stable for free-tier users.
+      // We remove tools entirely as they often trigger billing requirements/quota limits.
       const result = await ai.models.generateContentStream({
         model: 'gemini-flash-lite-latest',
         contents: contents,
@@ -55,19 +56,15 @@ export class GeminiService {
           systemInstruction: SYSTEM_INSTRUCTION,
           temperature: 0.1,
           topP: 0.95,
-          // Selective search usage to preserve free-tier quota
-          tools: (currentMessage.includes('މިއަދު') || currentMessage.includes('ޚަބަރު') || currentMessage.includes('news')) 
-            ? [{ googleSearch: {} }] 
-            : []
+          tools: [] // Removed googleSearch to prevent billing/quota errors
         },
       });
 
       for await (const chunk of result) {
         const c = chunk as GenerateContentResponse;
-        if (c.text || c.candidates?.[0]?.groundingMetadata) {
+        if (c.text) {
           yield {
-            text: c.text || "",
-            groundingChunks: c.candidates?.[0]?.groundingMetadata?.groundingChunks
+            text: c.text,
           };
         }
       }

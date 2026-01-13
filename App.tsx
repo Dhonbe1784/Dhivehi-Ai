@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Layout from './components/Layout';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
@@ -7,12 +7,11 @@ import { Message, Role, ChatSession } from './types';
 import { geminiService, StreamResult } from './services/geminiService';
 import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle, RefreshCw } from 'lucide-react';
 
-const App: React.FC = () => {
+const App = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [groundingMap, setGroundingMap] = useState<Record<string, any[]>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const currentSession = sessions.find(s => s.id === currentSessionId);
@@ -86,16 +85,12 @@ const App: React.FC = () => {
 
     try {
       let fullContent = "";
-      let accumulatedChunks: any[] = [];
       const stream = geminiService.streamChat(historySnapshot, content);
 
       for await (const result of stream) {
         const chunk = result as StreamResult;
         if (chunk.text) {
           fullContent += chunk.text;
-        }
-        if (chunk.groundingChunks) {
-          accumulatedChunks = [...accumulatedChunks, ...chunk.groundingChunks];
         }
 
         setSessions(prev => prev.map(s => {
@@ -109,10 +104,6 @@ const App: React.FC = () => {
           }
           return s;
         }));
-      }
-
-      if (accumulatedChunks.length > 0) {
-        setGroundingMap(prev => ({ ...prev, [botMessageId]: accumulatedChunks }));
       }
 
       setSessions(prev => prev.map(s => {
@@ -133,12 +124,10 @@ const App: React.FC = () => {
       let userFriendlyError = "";
       const errorStr = JSON.stringify(err).toUpperCase();
       
-      if (err.message === "MISSING_API_KEY_ON_DEPLOYMENT") {
-        userFriendlyError = "އޭޕީއައި ކީ (API Key) މަދުވެއެވެ. ވެރްސެލް ސެޓިންގްސްގައި VITE_API_KEY ހިމަނާފައިވޭތޯ ޗެކްކޮށްލައްވާ.";
-      } else if (errorStr.includes("RESOURCE_EXHAUSTED") || errorStr.includes("429")) {
-        userFriendlyError = "ހިލޭ ބޭނުންކުރެވޭ މިންވަރު (Free Quota) ހަމަވެއްޖެ. ކުޑަވަގުތުކޮޅަކަށްފަހު އަލުން މަސައްކަތް ކޮށްލައްވާ. ގިނަބަޔަކު އެއްފަހަރާ ބޭނުންކުރާތީ މިހެން ދިމާވެދާނެއެވެ.";
-      } else if (errorStr.includes("API_KEY_INVALID") || errorStr.includes("403")) {
-        userFriendlyError = "އޭޕީއައި ކީ (API Key) ސައްހައެއް ނޫން. އައު ކީ އެއް ހޯއްދަވާ.";
+      if (errorStr.includes("RESOURCE_EXHAUSTED") || errorStr.includes("429")) {
+        userFriendlyError = "މަސައްކަތް ކުރެވޭ ލިމިޓް (Free Quota) ހަމަވެއްޖެ. ކުޑަވަގުތުކޮޅަކަށްފަހު އަލުން މަސައްކަތް ކޮށްލައްވާ.";
+      } else if (errorStr.includes("BILLING") || errorStr.includes("ACCOUNT")) {
+        userFriendlyError = "އޭޕީއައި ކީ ބޭނުންކުރުމުގައި ބިލިންގް މައްސަލައެއް ދިމާވެއްޖެ. ގޫގުލް އޭއައި ސްޓޫޑިއޯގެ ސެޓިންގްސް ޗެކްކޮށްލައްވާ.";
       } else {
         userFriendlyError = "މައާފް ކުރައްވާ، ކޮންމެވެސް މައްސަލައެއް ދިމާވެއްޖެ. އަލުން މަސައްކަތް ކޮށްލައްވާ.";
       }
@@ -207,11 +196,11 @@ const App: React.FC = () => {
             prompt: "ދިވެހި ބަހުގެ ގަވާއިދުގައި 'ކަށަވަށް' މި ބަހުގެ މާނައަކީ ކޮބައި؟"
           },
           {
-            title: "ދުނިޔޭގެ ޚަބަރު",
-            desc: "މިއަދުގެ އެންމެ ފަހުގެ ޚަބަރުތައް ހޯދައި އޮޅުންފިލުވާ.",
+            title: "މައުލޫމާތު ހޯދުން",
+            desc: "ތަފާތު މައުލޫމާތުތައް ހޯދުމަށް ސުވާލުކުރައްވާ.",
             icon: <Globe size={24} />,
             color: "orange",
-            prompt: "މިއަދުގެ އެންމެ ފަހުގެ ޚަބަރުތަކަކީ ކޮބައި؟"
+            prompt: "ކާބޯތަކެތީގެ ފައިދާތަކަކީ ކޮބައި؟"
           }
         ].map((item, idx) => (
           <button 
@@ -252,7 +241,6 @@ const App: React.FC = () => {
                 <ChatMessage 
                   key={msg.id} 
                   message={msg} 
-                  groundingChunks={groundingMap[msg.id]} 
                 />
               ))}
               {isTyping && !currentSession.messages[currentSession.messages.length - 1].isStreaming && (
