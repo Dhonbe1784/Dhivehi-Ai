@@ -25,52 +25,56 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const textDir = isDhivehi(message.content) ? 'rtl' : 'ltr';
 
   return (
-    <div className={`w-full ${isUser ? 'bg-transparent' : 'bg-gray-50/70 border-y border-gray-100/50'}`}>
-      <div className="max-w-4xl mx-auto px-4 md:px-8 py-10 flex gap-4 md:gap-10">
-        <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center shadow-sm border transition-all ${
-          isUser 
-            ? 'bg-white border-gray-200 text-gray-500' 
-            : 'bg-emerald-600 border-emerald-500 text-white shadow-emerald-500/10'
-        }`}>
-          {isUser ? <User size={22} /> : <Bot size={22} />}
+    <div className={`w-full animate-fade-in ${isUser ? 'bg-transparent' : 'bg-slate-50/50 dark:bg-slate-900/30 border-y border-slate-100/50 dark:border-slate-800/50'}`}>
+      <div className="max-w-4xl mx-auto px-4 md:px-8 py-12 flex gap-6 md:gap-12">
+        <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center shadow-md border transition-all duration-300 ${isUser
+          ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 group-hover:border-slate-300 dark:group-hover:border-slate-600 shadow-slate-100 dark:shadow-slate-950/50'
+          : 'bg-emerald-600 border-emerald-500 text-white shadow-emerald-600/20'
+          }`}>
+          {isUser ? <User size={24} /> : <Bot size={24} />}
         </div>
-        
-        <div className="flex-1 min-w-0 flex flex-col">
-          <div className={`flex items-center gap-2 mb-3 ${textDir === 'rtl' ? 'flex-row' : 'flex-row-reverse'}`}>
-             <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] thaana-text">
-               {isUser ? 'ތިބާ' : 'BETA DHIVEHI AI'}
-             </span>
+
+        <div className="flex-1 min-w-0 flex flex-col pt-1">
+          <div className={`flex items-center gap-3 mb-4 ${textDir === 'rtl' ? 'flex-row' : 'flex-row-reverse'}`}>
+            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] font-sans">
+              {isUser ? 'ތިބާ' : 'Beta Dhivehi AI'}
+            </span>
+            {!isUser && (
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-[8px] font-black tracking-tighter uppercase">
+                Verified
+              </div>
+            )}
           </div>
 
-          <div 
-            className={`leading-relaxed text-gray-800 whitespace-pre-wrap break-words thaana-text text-[20px] md:text-[22px] font-normal ${textDir === 'rtl' ? 'text-right' : 'text-left'}`}
+          <div
+            className={`leading-relaxed text-slate-800 dark:text-slate-100 whitespace-pre-wrap break-words thaana-text text-[22px] md:text-[24px] font-normal leading-[1.8] ${textDir === 'rtl' ? 'text-right' : 'text-left'}`}
             style={{ direction: textDir }}
           >
             {message.content}
             {message.isStreaming && (
-              <span className="inline-block w-2 h-6 bg-emerald-500/50 animate-pulse mr-2 align-middle rounded-full"></span>
+              <span className="inline-block w-2.5 h-6 bg-emerald-500/40 animate-pulse mr-3 align-middle rounded-full"></span>
             )}
           </div>
 
           {!isUser && !message.isStreaming && message.content.length > 0 && (
-            <div className={`flex items-center gap-4 mt-8 ${textDir === 'rtl' ? 'justify-start' : 'justify-end'}`}>
-              <button 
+            <div className={`flex items-center gap-2 mt-10 p-1.5 w-fit rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm transition-colors ${textDir === 'rtl' ? 'ml-auto' : 'mr-auto'}`}>
+              <button
                 onClick={handleCopy}
-                className="p-2 hover:bg-emerald-50 rounded-lg text-gray-400 hover:text-emerald-600 transition-all flex items-center gap-2 border border-transparent hover:border-emerald-100"
+                className="p-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all flex items-center gap-2 active:scale-90"
                 title="ކޮޕީ ކުރޭ"
               >
-                {copied ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
+                {copied ? <Check size={18} className="text-emerald-600 dark:text-emerald-400" /> : <Copy size={18} />}
                 {copied && <span className="text-xs font-bold thaana-text">ކޮޕީ ކުރެވިއްޖެ</span>}
               </button>
-              <div className="h-4 w-[1px] bg-gray-200"></div>
-              <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-emerald-600 transition-all">
-                <ThumbsUp size={16} />
+              <div className="h-5 w-px bg-slate-100 dark:bg-slate-800 mx-1"></div>
+              <button className="p-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl text-slate-300 dark:text-slate-600 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all active:scale-90">
+                <ThumbsUp size={18} />
               </button>
-              <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-red-500 transition-all">
-                <ThumbsDown size={16} />
+              <button className="p-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl text-slate-300 dark:text-slate-600 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all active:scale-90">
+                <ThumbsDown size={18} />
               </button>
-              <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-blue-500 transition-all">
-                <Share2 size={16} />
+              <button className="p-2.5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl text-slate-300 dark:text-slate-600 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all active:scale-90">
+                <Share2 size={18} />
               </button>
             </div>
           )}

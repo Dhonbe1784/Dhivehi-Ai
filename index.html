@@ -1,69 +1,163 @@
-
 <!DOCTYPE html>
 <html lang="dv" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Beta Dhivehi AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thaana:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-      @font-face {
-        font-family: 'Faruma';
-        src: url('https://cdn.jsdelivr.net/gh/mshujau/thaana-fonts@master/Faruma.ttf') format('truetype');
-        font-weight: normal;
-        font-style: normal;
-        font-display: swap;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beta Dhivehi AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            thaana: ['Faruma', 'Noto Sans Thaana', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thaana:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Faruma';
+      src: url('https://cdn.jsdelivr.net/gh/mshujau/thaana-fonts@master/Faruma.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --primary: #059669;
+      --primary-light: #34d399;
+      --bg-main: #ffffff;
+      --sidebar-bg: #0f172a;
+      --text-main: #1e293b;
+      --border-color: #e2e8f0;
+    }
+
+    .dark {
+      --bg-main: #020617;
+      --text-main: #f8fafc;
+      --border-color: #1e293b;
+      --sidebar-bg: #020617;
+    }
+
+    body {
+      font-family: 'Faruma', 'Noto Sans Thaana', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
+    }
+
+    .thaana-text {
+      font-family: 'Faruma', 'Noto Sans Thaana', sans-serif;
+    }
+
+    [dir="rtl"] {
+      text-align: right;
+    }
+
+    /* Premium Scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #e2e8f0;
+      border-radius: 20px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #cbd5e1;
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+    }
+
+    .dark .glass {
+      background: rgba(15, 23, 42, 0.7);
+      border-color: rgba(51, 65, 85, 0.5);
+    }
+
+    .glass-dark {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
       }
 
-      body {
-        font-family: 'Faruma', 'Noto Sans Thaana', sans-serif;
-        line-height: 1.8;
-        margin: 0;
-        padding: 0;
-        background-color: #fcfcfc;
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
-      
-      .thaana-text {
-        font-family: 'Faruma', 'Noto Sans Thaana', sans-serif;
-        line-height: 1.8;
-      }
+    }
 
-      [dir="rtl"] {
-        text-align: right;
-      }
+    .animate-fade-in {
+      animation: fadeIn 0.4s ease-out forwards;
+    }
 
-      .chat-bg-pattern {
-        background-color: #ffffff;
-        background-image: radial-gradient(#e5e7eb 0.5px, transparent 0.5px);
-        background-size: 24px 24px;
-      }
+    .chat-bg-pattern {
+      background-color: var(--bg-main);
+      background-image:
+        radial-gradient(circle at 2px 2px, var(--border-color) 1px, transparent 0);
+      background-size: 32px 32px;
+    }
 
-      .gradient-mesh {
-        background: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
-                    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
-      }
+    .gradient-mesh {
+      background:
+        radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.05) 0px, transparent 50%);
+    }
 
-      ::-webkit-scrollbar {
-        width: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #e2e8f0;
-        border-radius: 10px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #cbd5e1;
-      }
+    .dark .gradient-mesh {
+      background:
+        radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+    }
 
-      #root {
-        min-height: 100vh;
-      }
-    </style>
+    input,
+    textarea,
+    button {
+      font-family: inherit;
+    }
+
+    #root {
+      min-height: 100vh;
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -78,8 +172,10 @@
 }
 </script>
 </head>
-  <body class="text-gray-900">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>
