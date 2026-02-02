@@ -21,17 +21,6 @@ A professional AI assistant optimized for the Dhivehi language and Maldivian cul
    npm run dev
    ```
 
-## 🌐 Free Hosting (Vercel/Netlify)
-
-This project is ready to be hosted for free:
-
-1. Push your code to a **GitHub** repository.
-2. Sign in to **Vercel** with GitHub.
-3. Import this repository.
-4. Under **Environment Variables**, add:
-   - Key: `API_KEY`
-   - Value: `your_gemini_api_key`
-5. Click **Deploy**.
 
 ## 🛠 Built With
 - React 19
