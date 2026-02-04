@@ -20,6 +20,7 @@ const Layout: React.FC<LayoutProps> = ({
   headerActions
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isCreditsOpen, setIsCreditsOpen] = useState(false);
 
   return (
     <div className="flex h-screen w-full bg-slate-50 dark:bg-[#020617] overflow-hidden transition-all duration-500 ease-in-out font-thaana" dir="rtl">
@@ -71,15 +72,18 @@ const Layout: React.FC<LayoutProps> = ({
           </div>
 
           <div className="p-4 border-t border-slate-800/60 bg-slate-900/50 space-y-2">
-            <div className="px-4 py-4 flex items-center gap-3 bg-slate-800/40 rounded-2xl border border-white/5 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+            <button
+              onClick={() => setIsCreditsOpen(true)}
+              className="w-full px-4 py-4 flex items-center gap-3 bg-slate-800/40 hover:bg-slate-800/60 rounded-2xl border border-white/5 mb-3 transition-all active:scale-[0.98] group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
                 <UserRound size={20} />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col min-w-0 text-right">
                 <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold truncate">Developed by</span>
                 <span className="text-xs font-bold text-slate-200 truncate">Dhonbe & Kudoo</span>
               </div>
-            </div>
+            </button>
 
             <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-all text-right text-slate-400 hover:text-white group">
               <Settings size={18} className="group-hover:rotate-90 transition-transform duration-500" />
@@ -127,6 +131,62 @@ const Layout: React.FC<LayoutProps> = ({
 
         {children}
       </main>
+
+      {/* Credits Modal */}
+      {isCreditsOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-md animate-fade-in"
+          onClick={() => setIsCreditsOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 max-w-sm w-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-200 dark:border-slate-800 relative overflow-hidden group"
+            onClick={(e) => e.stopPropagation()}
+            dir="ltr"
+          >
+            {/* Animated background glow */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-all duration-700"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl -ml-16 -mb-16 group-hover:bg-teal-500/20 transition-all duration-700"></div>
+
+            <div className="flex flex-col items-center gap-6 relative z-10">
+              <div className="relative">
+                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full scale-150 animate-pulse"></div>
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-xl shadow-emerald-500/20 rotate-3 group-hover:rotate-6 transition-all duration-500 relative z-10">
+                  <UserRound size={40} />
+                </div>
+              </div>
+
+              <div className="text-center space-y-6 w-full">
+                <div className="space-y-2">
+                  <h3 className="text-[10px] uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-400 font-black">Main Developer</h3>
+                  <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Dhonbe1784</p>
+                </div>
+
+                <div className="flex items-center gap-4 justify-center">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-200 dark:to-slate-800"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+                  <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-200 dark:to-slate-800"></div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Co-developers</h3>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <span className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-slate-200 rounded-full text-sm font-bold border border-slate-200/50 dark:border-white/5">
+                      Kudoo
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsCreditsOpen(false)}
+                className="mt-4 w-full py-4 bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-500/10"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

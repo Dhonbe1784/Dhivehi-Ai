@@ -1,12 +1,23 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Layout from './components/Layout';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import { Message, Role, ChatSession } from './types';
 import { geminiService } from './services/geminiService';
-import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle, Clock, Trash2, Moon, Sun } from 'lucide-react';
+import { Sparkles, BrainCircuit, Languages, Globe, AlertCircle, Clock, Trash2 } from 'lucide-react';
 import ThemeToggle from './components/ThemeToggle';
+
+const generateId = () => {
+  try {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+  } catch (e) {
+    // Fallback if crypto is weird
+  }
+  return Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+};
 
 const App = () => {
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
@@ -14,14 +25,16 @@ const App = () => {
       const saved = localStorage.getItem('chat-sessions');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.map((session: any) => ({
-          ...session,
-          updatedAt: new Date(session.updatedAt),
-          messages: session.messages.map((message: any) => ({
-            ...message,
-            timestamp: new Date(message.timestamp)
-          }))
-        }));
+        if (Array.isArray(parsed)) {
+          return parsed.map((session: any) => ({
+            ...session,
+            updatedAt: new Date(session.updatedAt || Date.now()),
+            messages: (session.messages || []).map((message: any) => ({
+              ...message,
+              timestamp: new Date(message.timestamp || Date.now())
+            }))
+          }));
+        }
       }
     } catch (e) {
       console.error('Error loading sessions:', e);
@@ -52,25 +65,36 @@ const App = () => {
     }
   }, [isDarkMode]);
 
+  // Consolidate localStorage saving to one effect to maintain consistency
   useEffect(() => {
-    localStorage.setItem('chat-sessions', JSON.stringify(sessions));
+    if (sessions.length > 0) {
+      localStorage.setItem('chat-sessions', JSON.stringify(sessions));
+    }
   }, [sessions]);
 
   useEffect(() => {
     if (currentSessionId) {
       localStorage.setItem('current-session-id', currentSessionId);
+    } else if (sessions.length > 0) {
+      // If we have sessions but no currentSessionId selected, don't remove it yet
+      // wait for the initialization effect to set it
     } else {
       localStorage.removeItem('current-session-id');
     }
-  }, [currentSessionId]);
+  }, [currentSessionId, sessions.length]);
 
   const currentSession = sessions.find(s => s.id === currentSessionId);
 
   useEffect(() => {
+    // Initialize sessions if empty
     if (sessions.length === 0) {
       handleNewChat();
-    } else if (!currentSessionId || !sessions.find(s => s.id === currentSessionId)) {
-      setCurrentSessionId(sessions[0].id);
+    } else {
+      // If we have sessions but currentSessionId is invalid or null, pick the first one
+      const sessionExists = sessions.find(s => s.id === currentSessionId);
+      if (!currentSessionId || !sessionExists) {
+        setCurrentSessionId(sessions[0].id);
+      }
     }
   }, []);
 
@@ -92,9 +116,9 @@ const App = () => {
     }
   }, [cooldown, error]);
 
-  const handleNewChat = () => {
+  const handleNewChat = useCallback(() => {
     const newSession: ChatSession = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       title: 'އައު ޗެޓެއް',
       messages: [],
       updatedAt: new Date(),
@@ -102,7 +126,7 @@ const App = () => {
     setSessions(prev => [newSession, ...prev]);
     setCurrentSessionId(newSession.id);
     setError(null);
-  };
+  }, []);
 
   const handleClearHistory = () => {
     if (!currentSessionId) return;
@@ -119,7 +143,7 @@ const App = () => {
     setError(null);
 
     const userMessage: Message = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       role: Role.USER,
       content,
       timestamp: new Date(),
@@ -146,7 +170,7 @@ const App = () => {
       const result = await geminiService.sendMessage(historySnapshot, content);
 
       const botMessage: Message = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         role: Role.MODEL,
         content: result.text,
         timestamp: new Date(),
